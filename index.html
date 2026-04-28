@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book Cover Viewer</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      transition: background-color 0.8s ease;
+      background-color: #2a2630;
+      overflow: hidden;
+    }
+
+    /* Subtle noise texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .scene {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    /* ── Card ── */
+    .card {
+      position: relative;
+      width: 340px;
+      padding: 48px 40px 44px;
+      border-radius: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow:
+        0 8px 32px rgba(0,0,0,0.28),
+        0 1px 0 rgba(255,255,255,0.06) inset;
+    }
+
+    /* ── Arch / pedestal ── */
+    .arch-wrap {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .arch {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 100px;          /* half-height = semicircle */
+      border-radius: 100px 100px 0 0;
+      transition: background-color 0.8s ease, box-shadow 0.8s ease;
+      background-color: #4a3f6b;
+      box-shadow: 0 0 60px rgba(120,90,180,0.18);
+    }
+
+    /* ── Book cover image ── */
+    .book-cover {
+      position: relative;
+      z-index: 2;
+      width: 148px;
+      height: 210px;
+      object-fit: cover;
+      border-radius: 6px;
+      box-shadow:
+        0 20px 50px rgba(0,0,0,0.50),
+        0 6px 16px rgba(0,0,0,0.30),
+        2px 2px 0 rgba(255,255,255,0.05) inset;
+      display: block;
+      margin-bottom: 0;
+      transition: transform 0.4s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    .book-cover:hover {
+      transform: scale(1.03) translateY(-4px);
+    }
+
+    /* ── Book meta ── */
+    .book-title {
+      font-size: 18px;
+      font-weight: 650;
+      color: rgba(255,255,255,0.92);
+      text-align: center;
+      letter-spacing: 0.01em;
+      line-height: 1.3;
+    }
+
+    .book-author {
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      text-align: center;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-top: -18px;
+    }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.10);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      width: 38%;
+      transition: background-color 0.8s ease;
+      background-color: rgba(180,150,220,0.7);
+    }
+
+    /* ── Action row ── */
+    .actions {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .btn {
+      flex: 1;
+      height: 40px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      background: rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.90);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.50);
+    }
+
+    /* ── Upload zone (initial state) ── */
+    .upload-zone {
+      width: 148px;
+      height: 210px;
+      border-radius: 6px;
+      border: 2px dashed rgba(255,255,255,0.18);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      color: rgba(255,255,255,0.35);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+      z-index: 2;
+    }
+
+    .upload-zone:hover {
+      border-color: rgba(255,255,255,0.40);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .upload-zone svg {
+      opacity: 0.45;
+    }
+
+    #file-input {
+      display: none;
+    }
+
+    /* ── Hidden canvas for color extraction ── */
+    #color-canvas {
+      display: none;
+    }
+
+    /* ── Drag-over highlight ── */
+    .drag-over .upload-zone {
+      border-color: rgba(255,255,255,0.60);
+      background: rgba(255,255,255,0.08);
+    }
+
+    /* ── Color palette panel ── */
+    .palette-panel {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      padding-top: 4px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .palette-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.28);
+    }
+
+    .palette-swatches {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .swatch-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      border-radius: 10px;
+      padding: 5px 8px;
+      transition: background 0.15s;
+    }
+
+    .swatch-row:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    .swatch-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      transition: background-color 0.6s ease;
+    }
+
+    .swatch-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+    }
+
+    .swatch-name {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+
+    .swatch-hex {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.88);
+      font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+    }
+
+    .copy-btn {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.22);
+      transition: color 0.15s;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .swatch-row:hover .copy-btn {
+      color: rgba(255,255,255,0.55);
+    }
+
+    .copy-btn.copied {
+      color: rgba(120,220,160,0.85) !important;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="color-canvas"></canvas>
+  <input type="file" id="file-input" accept="image/*" />
+
+  <div class="scene">
+    <div class="card" id="card">
+
+      <div class="arch-wrap" id="arch-wrap">
+        <div class="arch" id="arch"></div>
+
+        <!-- Upload zone shown before any image -->
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <span>Upload cover</span>
+        </div>
+
+        <!-- Book cover shown after upload -->
+        <img class="book-cover" id="book-cover" src="" alt="Book cover" style="display:none;" />
+      </div>
+
+      <div class="book-title" id="book-title" style="display:none;">Your Book Title</div>
+      <div class="book-author" id="book-author" style="display:none;">Author Name</div>
+
+      <div class="progress-wrap" id="progress-wrap" style="display:none;">
+        <div class="progress-label">
+          <span>Reading progress</span>
+          <span>38%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+
+      <div class="actions" id="actions" style="display:none;">
+        <button class="btn btn-primary">Continue</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('file-input').click()">Change</button>
+      </div>
+
+      <!-- Color palette -->
+      <div class="palette-panel" id="palette-panel">
+        <div class="palette-label">Extracted Colors</div>
+        <div class="palette-swatches">
+
+          <div class="swatch-row" onclick="copyHex('arch-hex', this)">
+            <div class="swatch-dot" id="dot-arch"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Arch</span>
+              <span class="swatch-hex" id="arch-hex">#——</span>
+            </div>
+            <span class="copy-btn">Copy</span>
+          </div>
+
+          <div class="swatch-row" onclick="copyHex('bg-hex', this)">
+            <div class="swatch-dot" id="dot-bg"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Background</span>
+              <span class="swatch-hex" id="bg-hex">#——</span>
+            </div>
+            <span class="copy-btn">Copy</span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const fileInput   = document.getElementById('file-input');
+    const uploadZone  = document.getElementById('upload-zone');
+    const bookCover   = document.getElementById('book-cover');
+    const arch        = document.getElementById('arch');
+    const canvas      = document.getElementById('color-canvas');
+    const ctx         = canvas.getContext('2d');
+    const progressFill = document.getElementById('progress-fill');
+
+    // ── Drag-and-drop support ──────────────────────────────────────────────
+    const card = document.getElementById('card');
+    card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('drag-over'); });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) processFile(file);
+    });
+
+    fileInput.addEventListener('change', e => {
+      if (e.target.files[0]) processFile(e.target.files[0]);
+    });
+
+    function processFile(file) {
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+          // Show the cover
+          bookCover.src = ev.target.result;
+          bookCover.style.display = 'block';
+          uploadZone.style.display = 'none';
+
+          // Show meta / UI
+          document.getElementById('book-title').style.display  = 'block';
+          document.getElementById('book-author').style.display = 'block';
+          document.getElementById('progress-wrap').style.display = 'flex';
+          document.getElementById('actions').style.display     = 'flex';
+
+          // Try to infer a title from the filename
+          const name = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+          document.getElementById('book-title').textContent =
+            name.length > 2 ? toTitleCase(name) : 'Your Book Title';
+
+          // Extract dominant color & apply theme
+          extractDominant(img);
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ── Color extraction via pixel sampling ───────────────────────────────
+    function extractDominant(img) {
+      const SIZE = 80;
+      canvas.width  = SIZE;
+      canvas.height = SIZE;
+      ctx.drawImage(img, 0, 0, SIZE, SIZE);
+
+      const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
+      const buckets = {};
+
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+        if (a < 128) continue;
+
+        // Skip near-white and near-black pixels (not interesting)
+        const lum = 0.299*r + 0.587*g + 0.114*b;
+        if (lum > 235 || lum < 20) continue;
+
+        // Quantise to 24 buckets per channel
+        const qr = Math.round(r / 32) * 32;
+        const qg = Math.round(g / 32) * 32;
+        const qb = Math.round(b / 32) * 32;
+        const key = `${qr},${qg},${qb}`;
+        buckets[key] = (buckets[key] || 0) + 1;
+      }
+
+      // Pick the most-frequent bucket
+      let best = null, bestCount = 0;
+      for (const [key, count] of Object.entries(buckets)) {
+        if (count > bestCount) { bestCount = count; best = key; }
+      }
+
+      let r = 100, g = 90, b = 130; // fallback
+      if (best) {
+        [r, g, b] = best.split(',').map(Number);
+      }
+
+      applyTheme(r, g, b);
+    }
+
+    // ── Convert RGB → HSL and back ────────────────────────────────────────
+    function rgbToHsl(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r,g,b), min = Math.min(r,g,b);
+      let h, s, l = (max+min)/2;
+      if (max === min) { h = s = 0; }
+      else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = ((g-b)/d + (g<b?6:0)) / 6; break;
+          case g: h = ((b-r)/d + 2) / 6; break;
+          case b: h = ((r-g)/d + 4) / 6; break;
+        }
+      }
+      return [h*360, s*100, l*100];
+    }
+
+    function hslToRgb(h, s, l) {
+      h /= 360; s /= 100; l /= 100;
+      let r, g, b;
+      if (s === 0) { r = g = b = l; }
+      else {
+        const q = l < 0.5 ? l*(1+s) : l+s-l*s;
+        const p = 2*l - q;
+        r = hue2rgb(p,q,h+1/3);
+        g = hue2rgb(p,q,h);
+        b = hue2rgb(p,q,h-1/3);
+      }
+      return [Math.round(r*255), Math.round(g*255), Math.round(b*255)];
+    }
+
+    function hue2rgb(p,q,t) {
+      if (t<0) t+=1; if (t>1) t-=1;
+      if (t<1/6) return p+(q-p)*6*t;
+      if (t<1/2) return q;
+      if (t<2/3) return p+(q-p)*(2/3-t)*6;
+      return p;
+    }
+
+    function rgbHex(r, g, b) {
+      return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
+    }
+
+    // ── Apply the two derived colors ─────────────────────────────────────
+    function applyTheme(r, g, b) {
+      const [h, s, l] = rgbToHsl(r, g, b);
+
+      // backgroundColor: dark, but richly saturated — hue stays vivid
+      const bgS = Math.min(s * 0.75, 60);
+      const bgL = Math.max(Math.min(l * 0.40, 30), 20);
+      const [br, bg, bb] = hslToRgb(h, bgS, bgL);
+      const bgColor = rgbHex(br, bg, bb);
+
+      // archColor: near-white pastel — very high lightness, low saturation
+      const archS = Math.min(s * 0.28, 22);
+      const archL = Math.min(l * 0.18 + 78, 92);
+      const [ar, ag, ab] = hslToRgb(h, archS, archL);
+      const archColor = rgbHex(ar, ag, ab);
+
+      // Apply visual theme
+      document.body.style.backgroundColor = bgColor;
+      arch.style.backgroundColor = archColor;
+      arch.style.boxShadow = `0 0 70px ${archColor}55`;
+      progressFill.style.backgroundColor = `${archColor}cc`;
+
+      // Update palette swatches
+      setSwatchColor('bg',   bgColor);
+      setSwatchColor('arch', archColor);
+
+      // Show palette panel
+      const panel = document.getElementById('palette-panel');
+      panel.style.display = 'flex';
+
+      // Animate each row in
+      panel.querySelectorAll('.swatch-row').forEach((row, i) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(6px)';
+        setTimeout(() => {
+          row.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+          row.style.opacity = '1';
+          row.style.transform = 'translateY(0)';
+        }, 400 + i * 70);
+      });
+    }
+
+    function setSwatchColor(key, hex) {
+      document.getElementById(`dot-${key}`).style.backgroundColor = hex;
+      document.getElementById(`${key}-hex`).textContent = hex.toUpperCase();
+    }
+
+    // ── Copy hex to clipboard ─────────────────────────────────────────────
+    function copyHex(spanId, row) {
+      const hex = document.getElementById(spanId).textContent.trim();
+      if (!hex || hex.includes('—')) return;
+      navigator.clipboard.writeText(hex).then(() => {
+        const btn = row.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1800);
+      }).catch(() => {
+        // Fallback for browsers without clipboard API
+        const ta = document.createElement('textarea');
+        ta.value = hex;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        const btn = row.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+      });
+    }
+
+    // ── Utility ───────────────────────────────────────────────────────────
+    function toTitleCase(str) {
+      const smalls = new Set(['a','an','the','and','but','or','for','nor','on','at','to','by','in','of']);
+      return str.split(' ')
+        .map((w,i) => (i===0 || !smalls.has(w.toLowerCase()))
+          ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+          : w.toLowerCase())
+        .join(' ');
+    }
+  </script>
+</body>
+</html>
