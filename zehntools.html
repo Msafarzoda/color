@@ -827,7 +827,7 @@ const WORDS_PER_MIN = 130; // default for display stats
 const LANG_WPM = {
   'en-US': 135,
   'en-GB': 135,
-  'ar-SA': 155, // Arabic TTS reads faster; needs more words to fill the same duration
+  'ar-SA': 200, // Arabic TTS reads significantly faster; calibrated to hit actual duration
   'ru-RU': 130,
   'tg-TJ': 130,
 };
@@ -1060,9 +1060,27 @@ async function generate() {
 
   setLoading(true);
   const numChapters = duration === 15 ? 7 : duration === 16 ? 8 : 9;
-  const langWPM = LANG_WPM[langCode] || 135;
-  const targetWords = duration * langWPM;
-  const wordsPerChapter = Math.round(targetWords / numChapters);
+
+  // Arabic is calibrated by characters (534 chars/min measured from real TTS output).
+  // Other languages use word count.
+  const ARABIC_CHARS_PER_MIN = 534;
+  const isArabic = langCode === 'ar-SA';
+
+  let sizeTarget, sizePerChapter, sizeUnit;
+  if (isArabic) {
+    const totalChars   = Math.round(ARABIC_CHARS_PER_MIN * duration);
+    sizePerChapter     = Math.round(totalChars / numChapters);
+    sizeTarget         = totalChars;
+    sizeUnit           = 'characters';
+  } else {
+    const langWPM      = LANG_WPM[langCode] || 135;
+    sizeTarget         = duration * langWPM;
+    sizePerChapter     = Math.round(sizeTarget / numChapters);
+    sizeUnit           = 'words';
+  }
+
+  // Keep legacy variable for word-count display in the UI
+  const wordsPerChapter = sizePerChapter;
 
   const prompt = `You are a content writer for Zehn, a microlearning audio app. Generate all content for the book below. Return ONLY valid JSON with no markdown, no backticks, no explanation.
 
@@ -1070,7 +1088,7 @@ Book: "${title}" by ${author}
 Language: ${langLabel}
 Category: ${category}
 Tone: ${tone}
-Total target: ${targetWords} words across ${numChapters} chapters (MINIMUM ${wordsPerChapter} words per chapter — this is a TTS audio script and must produce exactly ${duration} minutes of audio)
+Total target: ${sizeTarget} ${sizeUnit} across ${numChapters} chapters (MINIMUM ${sizePerChapter} ${sizeUnit} per chapter — this is a TTS audio script and must produce exactly ${duration} minutes of audio)
 
 Return this exact JSON structure:
 {
@@ -1079,7 +1097,7 @@ Return this exact JSON structure:
   "longDesc": "max 370 characters. Shown on book details page. Context, promise, intrigue. Tone: ${tone}. No em dashes.",
   "insights": ["sentence","sentence","sentence","sentence","sentence"],
   "chapters": [
-    { "title": "3-6 word chapter title in ${langLabel}", "content": "MINIMUM ${wordsPerChapter} words of spoken audio script. Do not write less." }
+    { "title": "3-6 word chapter title in ${langLabel}", "content": "MINIMUM ${sizePerChapter} ${sizeUnit} of spoken audio script. Count carefully and do not write less." }
   ]
 }
 
@@ -1092,7 +1110,7 @@ Insights rules:
 
 Chapter rules:
 - Exactly ${numChapters} chapters
-- Each chapter MUST contain at least ${wordsPerChapter} words — write more if needed, never less. This is critical for hitting the ${duration}-minute audio target.
+- Each chapter MUST contain at least ${sizePerChapter} ${sizeUnit} — write more if needed, never less. This is critical for hitting the ${duration}-minute audio target.
 - Chapter 1 opens with a compelling hook
 - Each covers one distinct core idea
 - Last chapter closes with a clear actionable takeaway
@@ -1123,10 +1141,26 @@ Chapter rules:
     }
     let raw = data.content?.[0]?.text || '';
     if (!raw) { genShowError('No content returned. Please try again.'); setLoading(false); return; }
-    raw = raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/```\s*$/i,'').trim();
+
+    // Robust JSON extraction — handles code fences, preamble text, and trailing commentary
+    function extractJSON(text) {
+      // Strip markdown fences anywhere in the string
+      text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+      // Find outermost { ... } block
+      const first = text.indexOf('{');
+      const last  = text.lastIndexOf('}');
+      if (first !== -1 && last !== -1 && last > first) return text.slice(first, last + 1);
+      return text;
+    }
+
+    raw = extractJSON(raw);
     let parsed;
     try { parsed = JSON.parse(raw); }
-    catch(e) { genShowError('The AI returned an unexpected format. Please try again.'); setLoading(false); return; }
+    catch(e) {
+      console.error('JSON parse failed. Raw response:', raw);
+      genShowError('The AI returned an unexpected format — check the browser console for the raw response. Try again or switch to Sonnet.');
+      setLoading(false); return;
+    }
 
     parsed.translatedTitle = parsed.translatedTitle || title;
     parsed.shortDesc = removeEmDashes(parsed.shortDesc || '');
