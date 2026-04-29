@@ -1061,22 +1061,25 @@ async function generate() {
   setLoading(true);
   const numChapters = duration === 15 ? 7 : duration === 16 ? 8 : 9;
 
-  // Arabic is calibrated by characters (534 chars/min measured from real TTS output).
-  // Other languages use word count.
+  // Arabic calibration: 6,806 characters = 12 min 45 sec of real TTS output
+  // → 534 characters per minute
   const ARABIC_CHARS_PER_MIN = 534;
   const isArabic = langCode === 'ar-SA';
 
-  let sizeTarget, sizePerChapter, sizeUnit;
+  let sizeTarget, sizePerChapter, sizeUnit, maxTok;
   if (isArabic) {
     const totalChars   = Math.round(ARABIC_CHARS_PER_MIN * duration);
     sizePerChapter     = Math.round(totalChars / numChapters);
     sizeTarget         = totalChars;
     sizeUnit           = 'characters';
+    // Arabic needs more output tokens — boost limit so model isn't cut off
+    maxTok             = 16000;
   } else {
     const langWPM      = LANG_WPM[langCode] || 135;
     sizeTarget         = duration * langWPM;
     sizePerChapter     = Math.round(sizeTarget / numChapters);
     sizeUnit           = 'words';
+    maxTok             = 8000;
   }
 
   // Keep legacy variable for word-count display in the UI
@@ -1089,6 +1092,7 @@ Language: ${langLabel}
 Category: ${category}
 Tone: ${tone}
 Total target: ${sizeTarget} ${sizeUnit} across ${numChapters} chapters (MINIMUM ${sizePerChapter} ${sizeUnit} per chapter — this is a TTS audio script and must produce exactly ${duration} minutes of audio)
+${isArabic ? `IMPORTANT: "${sizeUnit}" means the total count of all letters, spaces, and punctuation combined in the Arabic text — the same as text.length in JavaScript. Each chapter's "content" value must be at least ${sizePerChapter} characters long. Write detailed, rich, flowing Arabic prose to reach this length.` : ''}
 
 Return this exact JSON structure:
 {
@@ -1097,7 +1101,7 @@ Return this exact JSON structure:
   "longDesc": "max 370 characters. Shown on book details page. Context, promise, intrigue. Tone: ${tone}. No em dashes.",
   "insights": ["sentence","sentence","sentence","sentence","sentence"],
   "chapters": [
-    { "title": "3-6 word chapter title in ${langLabel}", "content": "MINIMUM ${sizePerChapter} ${sizeUnit} of spoken audio script. Count carefully and do not write less." }
+    { "title": "3-6 word chapter title in ${langLabel}", "content": "MINIMUM ${sizePerChapter} ${sizeUnit} of spoken audio script — count every letter and space. Do NOT stop early. Write until you reach ${sizePerChapter} ${sizeUnit}." }
   ]
 }
 
@@ -1111,6 +1115,7 @@ Insights rules:
 Chapter rules:
 - Exactly ${numChapters} chapters
 - Each chapter MUST contain at least ${sizePerChapter} ${sizeUnit} — write more if needed, never less. This is critical for hitting the ${duration}-minute audio target.
+${isArabic ? `- ARABIC REQUIREMENT: count characters (حروف + مسافات + علامات) — each chapter needs at least ${sizePerChapter} of them. If a chapter is too short, keep writing until it reaches ${sizePerChapter}.` : ''}
 - Chapter 1 opens with a compelling hook
 - Each covers one distinct core idea
 - Last chapter closes with a clear actionable takeaway
@@ -1129,7 +1134,7 @@ Chapter rules:
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true'
       },
-      body: JSON.stringify({ model: document.getElementById('modelSelect').value, max_tokens: 8000, messages: [{ role:'user', content: prompt }] })
+      body: JSON.stringify({ model: document.getElementById('modelSelect').value, max_tokens: maxTok, messages: [{ role:'user', content: prompt }] })
     });
     const data = await res.json();
     if (!res.ok) {
