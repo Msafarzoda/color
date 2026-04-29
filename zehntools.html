@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Zehn Internal Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital,wght@1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --ink: #03212E;
+  --line: rgba(255,255,255,0.08);
+  --line-2: rgba(255,255,255,0.15);
+  --text: #EAF3F8;
+  --text-dim: rgba(234,243,248,0.66);
+  --text-mute: rgba(234,243,248,0.38);
+  --green: #82FF7F;
+  --amber: #FBD97F;
+  --blue: #7FC4FB;
+  --red: #FF8A8A;
+  --purple: #C4A8FB;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-lg: 20px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--text);font-family:'Plus Jakarta Sans',system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+.page-wrap{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:0 24px 80px}
+
+/* ── SHARED HEADER ── */
+header{padding:32px 0 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);margin-bottom:0}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-mark{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:var(--ink);letter-spacing:-0.04em;flex-shrink:0;transition:background 0.3s}
+.logo-mark.gen{background:var(--green)}
+.logo-mark.ana{background:var(--blue)}
+.logo-mark.cov{background:var(--amber)}
+.logo-text{font-weight:700;font-size:18px;letter-spacing:-0.02em}
+.logo-sub{font-size:12px;color:var(--text-mute);letter-spacing:0.06em;text-transform:uppercase;margin-top:1px}
+.header-badge{font-size:11px;padding:5px 12px;border-radius:99px;border:1px solid var(--line-2);color:var(--text-mute);letter-spacing:0.04em;transition:opacity 0.2s}
+
+/* ── TOP NAV ── */
+.tool-nav{display:flex;gap:0;margin:0 0 40px;border-bottom:1px solid var(--line);position:relative}
+.tool-nav-btn{flex:1;padding:16px 12px;border:none;background:transparent;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:14px;font-weight:600;color:var(--text-mute);cursor:pointer;transition:color 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;letter-spacing:-0.01em}
+.tool-nav-btn:hover{color:var(--text-dim)}
+.tool-nav-btn.active{color:var(--text)}
+.tool-nav-btn::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;border-radius:99px 99px 0 0;background:transparent;transition:background 0.2s}
+.tool-nav-btn.active.gen-active::after{background:var(--green)}
+.tool-nav-btn.active.ana-active::after{background:var(--blue)}
+.tool-nav-btn.active.cov-active::after{background:var(--amber)}
+.tool-nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ── SHARED CARD / FORM ── */
+.card{background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:var(--radius-lg);padding:28px;margin-bottom:20px}
+.card-title{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mute);margin-bottom:20px}
+.page-title{margin-bottom:40px}
+.page-title h1{font-size:clamp(28px,5vw,40px);font-weight:800;letter-spacing:-0.03em;line-height:1.05;margin-bottom:10px}
+.page-title p{color:var(--text-dim);font-size:15px;line-height:1.6}
+.error-msg{display:none;background:rgba(220,70,70,0.1);border:1px solid rgba(220,70,70,0.25);border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;color:#ff8a8a;margin-top:16px;line-height:1.5}
+.error-msg.visible{display:block}
+footer{margin-top:60px;padding-top:24px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+footer p{font-size:12px;color:var(--text-mute)}
+.footer-logo{font-size:13px;font-weight:700;color:var(--text-mute);letter-spacing:-0.01em}
+.footer-logo span{color:var(--green)}
+
+/* ═══════════════════════════════════
+   SCRIPT GENERATOR STYLES
+═══════════════════════════════════ */
+#tool-generator body::before{background:radial-gradient(ellipse 80% 60% at 10% 0%,rgba(130,255,127,0.06) 0%,transparent 60%)}
+.gen-bg{position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 10% 0%,rgba(130,255,127,0.06) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 90% 100%,rgba(110,193,214,0.05) 0%,transparent 55%);pointer-events:none;z-index:0;transition:opacity 0.4s}
+.ana-bg{position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 80% 10%,rgba(127,196,251,0.05) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 10% 90%,rgba(130,255,127,0.05) 0%,transparent 55%);pointer-events:none;z-index:0;transition:opacity 0.4s;opacity:0}
+.page-title h1 .em-gen{font-family:'Lora',serif;font-style:italic;font-weight:500;color:var(--green)}
+.page-title h1 .em-ana{font-style:italic;font-weight:500;color:var(--blue)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:560px){.form-grid{grid-template-columns:1fr}}
+.form-group{display:flex;flex-direction:column;gap:7px}
+.form-group label{font-size:12px;font-weight:600;color:var(--text-dim);letter-spacing:0.03em}
+.form-group input,.form-group select,.setting-group input,.setting-group select{background:rgba(255,255,255,0.05);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:11px 14px;font-size:14px;color:var(--text);font-family:'Plus Jakarta Sans',system-ui,sans-serif;outline:none;transition:border-color 0.15s,background 0.15s;width:100%;appearance:none;-webkit-appearance:none}
+.form-group select,.setting-group select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(234,243,248,0.4)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer}
+.form-group select option,.setting-group select option{background:#052A3B;color:var(--text)}
+.form-group input:focus,.form-group select:focus{border-color:rgba(130,255,127,0.4);background:rgba(130,255,127,0.04)}
+.form-group input::placeholder{color:var(--text-mute)}
+.api-section{background:rgba(130,255,127,0.04);border:1px solid rgba(130,255,127,0.15);border-radius:var(--radius);padding:18px;margin-bottom:20px;display:flex;gap:14px;align-items:flex-start}
+.api-icon{width:32px;height:32px;background:rgba(130,255,127,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.api-icon svg{width:15px;height:15px;stroke:var(--green)}
+.api-info{flex:1}
+.api-info p{font-size:12px;color:var(--text-dim);margin-bottom:10px;line-height:1.5}
+.api-info strong{color:var(--green);font-weight:600}
+.key-input-wrap{position:relative}
+.key-input-wrap input{background:rgba(255,255,255,0.05);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:10px 44px 10px 14px;font-size:13px;color:var(--text);font-family:monospace;outline:none;width:100%;transition:border-color 0.15s;letter-spacing:0.04em}
+.key-input-wrap input:focus{border-color:rgba(130,255,127,0.4)}
+.key-input-wrap input::placeholder{color:var(--text-mute);letter-spacing:0;font-family:'Plus Jakarta Sans',sans-serif}
+.toggle-vis{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-mute);cursor:pointer;padding:4px;display:flex;align-items:center;transition:color 0.15s}
+.toggle-vis:hover{color:var(--text-dim)}
+.toggle-vis svg{width:16px;height:16px}
+.remember-row{display:flex;align-items:center;gap:8px;margin-top:10px}
+.remember-row input[type="checkbox"]{width:15px;height:15px;accent-color:var(--green);cursor:pointer}
+.remember-row label{font-size:12px;color:var(--text-mute);cursor:pointer}
+.btn-wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.btn-generate{display:inline-flex;align-items:center;gap:8px;background:var(--green);color:var(--ink);border:none;border-radius:var(--radius-sm);padding:13px 24px;font-size:14px;font-weight:700;font-family:'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:opacity 0.15s,transform 0.1s;letter-spacing:-0.01em}
+.btn-generate:hover{opacity:0.88}
+.btn-generate:active{transform:scale(0.97)}
+.btn-generate:disabled{opacity:0.35;cursor:not-allowed;transform:none}
+.btn-generate svg{width:16px;height:16px;flex-shrink:0}
+.btn-secondary{display:none;align-items:center;gap:8px;background:transparent;color:var(--text-dim);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:12px 20px;font-size:14px;font-weight:500;font-family:'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:background 0.15s,color 0.15s}
+.btn-secondary:hover{background:rgba(255,255,255,0.05);color:var(--text)}
+.shortcut-hint{font-size:11px;color:var(--text-mute);display:flex;align-items:center;gap:6px}
+.key-badge{display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;border-radius:4px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);font-size:10px;color:var(--text-mute);letter-spacing:0.04em}
+.loading-panel{display:none;flex-direction:column;align-items:center;gap:28px;padding:48px 28px;text-align:center;border-radius:var(--radius-lg);border:1px solid var(--line);background:rgba(255,255,255,0.02);margin-top:20px}
+.loading-panel.visible{display:flex;animation:fadeUp 0.3s ease}
+.loading-orb{width:64px;height:64px;border-radius:50%;border:2px solid rgba(130,255,127,0.12);border-top-color:var(--green);animation:spin 1s linear infinite;position:relative}
+.loading-orb::after{content:'';position:absolute;inset:7px;border-radius:50%;border:1px solid rgba(130,255,127,0.06);border-bottom-color:rgba(130,255,127,0.28);animation:spin 1.8s linear infinite reverse}
+.loading-step{font-size:15px;font-weight:600;color:var(--text);min-height:24px;transition:opacity 0.4s ease}
+.loading-divider{width:40px;height:1px;background:var(--line-2);flex-shrink:0}
+.loading-tip-label{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mute);font-weight:600;margin-bottom:8px}
+.loading-tip{font-size:13px;color:var(--text-dim);line-height:1.65;max-width:420px;font-style:italic;min-height:44px;transition:opacity 0.5s ease}
+.loading-progress-bar{width:100%;max-width:300px;height:2px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden}
+.loading-progress-fill{height:100%;background:var(--green);border-radius:99px;width:0%;transition:width 0.9s ease}
+.tabs-wrap{display:flex;gap:4px;margin-bottom:20px;background:rgba(255,255,255,0.04);border-radius:10px;padding:4px}
+.tab-btn{flex:1;padding:9px 8px;border:none;background:transparent;border-radius:7px;font-size:12px;font-weight:600;color:var(--text-mute);font-family:'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:background 0.15s,color 0.15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.tab-btn:hover{color:var(--text-dim)}
+.tab-btn.active{background:rgba(255,255,255,0.08);color:var(--text)}
+.tab-btn .tab-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.tab-pane{display:none}
+.tab-pane.active{display:block;animation:fadeUp 0.25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.output-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.output-book-title{font-size:20px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px}
+.output-book-author{font-size:13px;color:var(--text-dim)}
+.output-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{font-size:11px;padding:4px 10px;border-radius:99px;border:1px solid var(--line-2);color:var(--text-mute)}
+.chip.green{border-color:rgba(130,255,127,0.25);color:var(--green);background:rgba(130,255,127,0.07)}
+.chip.amber{border-color:rgba(251,217,127,0.25);color:var(--amber);background:rgba(251,217,127,0.07)}
+.chip.blue{border-color:rgba(127,196,251,0.25);color:var(--blue);background:rgba(127,196,251,0.07)}
+.chip.purple{border-color:rgba(196,168,251,0.25);color:var(--purple);background:rgba(196,168,251,0.07)}
+.output-actions{display:flex;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.btn-action{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:9px 16px;font-size:13px;font-weight:500;color:var(--text-dim);font-family:'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:background 0.15s,color 0.15s,border-color 0.15s}
+.btn-action:hover{background:rgba(255,255,255,0.09);color:var(--text)}
+.btn-action svg{width:14px;height:14px}
+.btn-action.copied{color:var(--green);border-color:rgba(130,255,127,0.3)}
+.divider{border:none;border-top:1px solid var(--line);margin:20px 0}
+.script-body{font-size:15px;line-height:1.85;color:var(--text-dim);white-space:pre-wrap;max-height:520px;overflow-y:auto;padding-right:8px}
+.script-body::-webkit-scrollbar{width:4px}
+.script-body::-webkit-scrollbar-track{background:transparent}
+.script-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:99px}
+.ssml-body{font-size:13px;line-height:1.7;color:var(--text-dim);white-space:pre-wrap;max-height:520px;overflow-y:auto;padding-right:8px;font-family:'JetBrains Mono',monospace;letter-spacing:0.01em}
+.ssml-body::-webkit-scrollbar{width:4px}
+.ssml-body::-webkit-scrollbar-track{background:transparent}
+.ssml-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:99px}
+.ssml-tag{color:var(--amber)}
+.ssml-break{color:var(--blue)}
+.ssml-note{background:rgba(196,168,251,0.08);border:1px solid rgba(196,168,251,0.2);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:16px;font-family:'Plus Jakarta Sans',sans-serif}
+.ssml-note strong{color:var(--purple)}
+.meta-field{margin-bottom:20px}
+.meta-field-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.meta-label{font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:0.04em}
+.meta-where{font-size:11px;color:var(--text-mute);font-style:italic}
+.meta-content{background:rgba(255,255,255,0.04);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:14px 16px;font-size:14px;color:var(--text);line-height:1.6;position:relative}
+.meta-copy-btn{position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.06);border:1px solid var(--line-2);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;color:var(--text-mute);font-family:'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:background 0.15s,color 0.15s}
+.meta-copy-btn:hover{background:rgba(255,255,255,0.1);color:var(--text)}
+.meta-copy-btn.copied{color:var(--green);border-color:rgba(130,255,127,0.3)}
+.char-counter{font-size:11px;color:var(--text-mute);margin-top:6px;text-align:right}
+.char-counter.warn{color:var(--amber)}
+.char-counter.over{color:#ff8a8a}
+.insights-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.insight-item{display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,0.04);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:12px 14px}
+.insight-bullet{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:6px}
+.insight-text{font-size:14px;color:var(--text-dim);line-height:1.6;flex:1}
+.insights-char-counter{font-size:11px;color:var(--text-mute);margin-top:8px;text-align:right}
+.chapter-list{display:flex;flex-direction:column;gap:12px}
+.chapter-item{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.chapter-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;background:rgba(255,255,255,0.03);transition:background 0.15s;gap:12px;user-select:none}
+.chapter-header:hover{background:rgba(255,255,255,0.06)}
+.chapter-meta{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.chapter-num{font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--green);text-transform:uppercase;flex-shrink:0}
+.chapter-title{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chapter-badges{display:flex;gap:6px;flex-shrink:0}
+.chapter-badge{font-size:10px;padding:3px 8px;border-radius:99px;border:1px solid var(--line-2);color:var(--text-mute)}
+.chapter-toggle{color:var(--text-mute);flex-shrink:0;font-size:16px;transition:transform 0.2s}
+.chapter-item.open .chapter-toggle{transform:rotate(90deg)}
+.chapter-body{display:none;padding:16px 18px;border-top:1px solid var(--line);font-size:14px;line-height:1.8;color:var(--text-dim);white-space:pre-wrap}
+.chapter-item.open .chapter-body{display:block}
+.chapter-actions{display:flex;justify-content:flex-end;margin-top:12px}
+.quality-row{display:none;align-items:center;gap:10px;margin-top:14px;padding:10px 14px;border-radius:var(--radius-sm);background:rgba(130,255,127,0.05);border:1px solid rgba(130,255,127,0.12)}
+.quality-row.show{display:flex}
+.quality-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;box-shadow:0 0 7px rgba(130,255,127,0.5)}
+.quality-text{font-size:12px;color:var(--text-dim);line-height:1.4}
+.quality-text strong{color:var(--green)}
+.word-count-bar{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap;gap:8px}
+.wc-stat{font-size:12px;color:var(--text-mute)}
+.output-wrap{display:none}
+.output-wrap.visible{display:block;animation:fadeUp 0.4s ease}
+.history-section{display:none}
+.history-section.visible{display:block}
+.history-list{display:flex;flex-direction:column;gap:8px}
+.history-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.02);border:1px solid var(--line);cursor:pointer;transition:background 0.15s;gap:12px}
+.history-item:hover{background:rgba(255,255,255,0.05)}
+.history-item-title{font-size:14px;font-weight:500}
+.history-item-meta{font-size:12px;color:var(--text-mute);margin-top:2px}
+.history-item-arrow{color:var(--text-mute);flex-shrink:0;font-size:18px}
+
+/* ═══════════════════════════════════
+   AUDIO ANALYSER STYLES
+═══════════════════════════════════ */
+.drop-zone{border:2px dashed rgba(127,196,251,0.3);border-radius:var(--radius-lg);padding:48px 24px;text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s;position:relative}
+.drop-zone:hover,.drop-zone.drag-over{border-color:rgba(127,196,251,0.7);background:rgba(127,196,251,0.04)}
+.drop-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{width:48px;height:48px;background:rgba(127,196,251,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.drop-icon svg{width:22px;height:22px;stroke:var(--blue)}
+.drop-title{font-size:16px;font-weight:700;margin-bottom:6px}
+.drop-sub{font-size:13px;color:var(--text-mute)}
+.drop-formats{display:flex;gap:8px;justify-content:center;margin-top:14px}
+.format-badge{font-size:11px;padding:4px 10px;border-radius:99px;border:1px solid var(--line-2);color:var(--text-mute)}
+.settings-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:560px){.settings-row{grid-template-columns:1fr}}
+.setting-group{display:flex;flex-direction:column;gap:7px}
+.setting-group label{font-size:12px;font-weight:600;color:var(--text-dim);letter-spacing:0.03em}
+.setting-group input:focus,.setting-group select:focus{border-color:rgba(127,196,251,0.4);background:rgba(127,196,251,0.04)}
+.setting-hint{font-size:11px;color:var(--text-mute);margin-top:4px;line-height:1.4}
+.chapter-names-wrap{margin-bottom:20px}
+.chapter-name-list{display:flex;flex-direction:column;gap:8px}
+.chapter-name-row{display:flex;align-items:center;gap:10px}
+.chapter-name-num{font-size:11px;font-weight:700;color:var(--blue);letter-spacing:0.06em;width:36px;flex-shrink:0}
+.chapter-name-input{flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:9px 12px;font-size:13px;color:var(--text);font-family:'Plus Jakarta Sans',system-ui,sans-serif;outline:none;transition:border-color 0.15s}
+.chapter-name-input:focus{border-color:rgba(127,196,251,0.4);background:rgba(127,196,251,0.04)}
+.chapter-name-input::placeholder{color:var(--text-mute)}
+.btn-analyse{display:inline-flex;align-items:center;gap:8px;background:var(--blue);color:var(--ink);border:none;border-radius:var(--radius-sm);padding:13px 24px;font-size:14px;font-weight:700;font-family:'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:opacity 0.15s,transform 0.1s;letter-spacing:-0.01em}
+.btn-analyse:hover{opacity:0.88}
+.btn-analyse:active{transform:scale(0.97)}
+.btn-analyse:disabled{opacity:0.35;cursor:not-allowed;transform:none}
+.btn-analyse svg{width:16px;height:16px;flex-shrink:0}
+.progress-wrap{display:none;margin-top:20px}
+.progress-wrap.visible{display:block}
+.progress-label{font-size:13px;color:var(--text-dim);margin-bottom:8px}
+.progress-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:var(--blue);border-radius:99px;width:0%;transition:width 0.3s ease}
+.progress-status{font-size:12px;color:var(--text-mute);margin-top:8px;font-family:'JetBrains Mono',monospace}
+.waveform-wrap{margin-top:20px;display:none}
+.waveform-wrap.visible{display:block}
+canvas#waveform{width:100%;height:80px;border-radius:var(--radius-sm);border:1px solid var(--line);display:block;cursor:crosshair}
+.results-section{display:none;animation:fadeUp 0.4s ease}
+.results-section.visible{display:block}
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.results-title{font-size:16px;font-weight:700}
+.results-meta{font-size:12px;color:var(--text-mute)}
+.btn-copy-results{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:9px 16px;font-size:13px;font-weight:500;color:var(--text-dim);font-family:'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:background 0.15s,color 0.15s}
+.btn-copy-results:hover{background:rgba(255,255,255,0.09);color:var(--text)}
+.btn-copy-results.copied{color:var(--green);border-color:rgba(130,255,127,0.3)}
+.btn-copy-results svg{width:14px;height:14px}
+.chapter-result-list{display:flex;flex-direction:column;gap:10px}
+.chapter-result{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:16px;background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+@media(max-width:560px){.chapter-result{grid-template-columns:auto 1fr;gap:10px}}
+.cr-num{font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--blue);text-transform:uppercase;white-space:nowrap}
+.cr-title{font-size:14px;font-weight:600;color:var(--text)}
+.cr-title-sub{font-size:12px;color:var(--text-mute);margin-top:2px}
+.cr-time{text-align:right}
+.cr-time-range{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text)}
+.cr-time-sec{font-size:11px;color:var(--text-mute);margin-top:2px;font-family:'JetBrains Mono',monospace}
+.cr-dur{text-align:right}
+.cr-dur-val{font-size:13px;font-weight:600;color:var(--amber);font-family:'JetBrains Mono',monospace}
+.cr-dur-label{font-size:11px;color:var(--text-mute);margin-top:2px}
+.summary-bar{display:flex;gap:20px;flex-wrap:wrap;padding:16px 18px;background:rgba(130,255,127,0.04);border:1px solid rgba(130,255,127,0.12);border-radius:var(--radius-sm);margin-top:20px}
+.summary-stat{display:flex;flex-direction:column;gap:3px}
+.summary-stat-label{font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:0.08em;font-weight:600}
+.summary-stat-value{font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--green)}
+.warning-box{background:rgba(251,217,127,0.08);border:1px solid rgba(251,217,127,0.2);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--text-dim);line-height:1.6;margin-top:16px}
+.warning-box strong{color:var(--amber)}
+.info-box{background:rgba(127,196,251,0.06);border:1px solid rgba(127,196,251,0.15);border-radius:var(--radius-sm);padding:14px 16px;font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:20px}
+.info-box strong{color:var(--blue)}
+.file-info{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(127,196,251,0.06);border:1px solid rgba(127,196,251,0.15);border-radius:var(--radius-sm);margin-bottom:16px}
+.file-icon{width:32px;height:32px;background:rgba(127,196,251,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.file-icon svg{width:15px;height:15px;stroke:var(--blue)}
+.file-name{font-size:14px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-size{font-size:12px;color:var(--text-mute)}
+.file-remove{background:none;border:none;color:var(--text-mute);cursor:pointer;padding:4px;display:flex;align-items:center;transition:color 0.15s}
+.file-remove:hover{color:var(--red)}
+.file-remove svg{width:16px;height:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══════════════════════════════════
+   BOOK COVER TOOL STYLES
+═══════════════════════════════════ */
+.cover-bg{position:fixed;inset:0;pointer-events:none;z-index:0;transition:background-color 0.8s ease,opacity 0.4s;opacity:0;background-color:#2a2630}
+#tool-cover{display:flex;flex-direction:column;align-items:center;padding-top:20px}
+#tool-cover .cv-scene{display:flex;flex-direction:column;align-items:center;gap:0;width:100%;max-width:380px}
+#tool-cover .cv-card{position:relative;width:100%;max-width:340px;padding:48px 40px 44px;border-radius:32px;display:flex;flex-direction:column;align-items:center;gap:28px;background:rgba(255,255,255,0.06);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,0.10);box-shadow:0 8px 32px rgba(0,0,0,0.28),0 1px 0 rgba(255,255,255,0.06) inset}
+#tool-cover .cv-arch-wrap{position:relative;width:220px;height:220px;display:flex;align-items:flex-end;justify-content:center}
+#tool-cover .cv-arch{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:200px;height:100px;border-radius:100px 100px 0 0;transition:background-color 0.8s ease,box-shadow 0.8s ease;background-color:#4a3f6b;box-shadow:0 0 60px rgba(120,90,180,0.18)}
+#tool-cover .cv-book-cover{position:relative;z-index:2;width:148px;height:210px;object-fit:cover;border-radius:6px;box-shadow:0 20px 50px rgba(0,0,0,0.50),0 6px 16px rgba(0,0,0,0.30),2px 2px 0 rgba(255,255,255,0.05) inset;display:block;margin-bottom:0;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1)}
+#tool-cover .cv-book-cover:hover{transform:scale(1.03) translateY(-4px)}
+#tool-cover .cv-book-title{font-size:18px;font-weight:650;color:rgba(255,255,255,0.92);text-align:center;letter-spacing:0.01em;line-height:1.3}
+#tool-cover .cv-book-author{font-size:13px;color:rgba(255,255,255,0.45);text-align:center;letter-spacing:0.04em;text-transform:uppercase;margin-top:-18px}
+#tool-cover .cv-progress-wrap{width:100%;display:flex;flex-direction:column;gap:8px}
+#tool-cover .cv-progress-label{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:0.06em;text-transform:uppercase}
+#tool-cover .cv-progress-track{width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.10);overflow:hidden}
+#tool-cover .cv-progress-fill{height:100%;border-radius:2px;width:38%;transition:background-color 0.8s ease;background-color:rgba(180,150,220,0.7)}
+#tool-cover .cv-actions{display:flex;gap:12px;width:100%}
+#tool-cover .cv-btn{flex:1;height:40px;border-radius:12px;border:none;cursor:pointer;font-size:13px;font-weight:600;letter-spacing:0.02em;transition:transform 0.15s ease,opacity 0.15s ease}
+#tool-cover .cv-btn:hover{opacity:0.85;transform:translateY(-1px)}
+#tool-cover .cv-btn:active{transform:translateY(0)}
+#tool-cover .cv-btn-primary{background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.90)}
+#tool-cover .cv-btn-secondary{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.50)}
+#tool-cover .cv-upload-zone{width:148px;height:210px;border-radius:6px;border:2px dashed rgba(255,255,255,0.18);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;color:rgba(255,255,255,0.35);font-size:12px;letter-spacing:0.04em;text-transform:uppercase;transition:border-color 0.2s,background 0.2s;position:relative;z-index:2}
+#tool-cover .cv-upload-zone:hover{border-color:rgba(255,255,255,0.40);background:rgba(255,255,255,0.04)}
+#tool-cover .cv-upload-zone svg{opacity:0.45}
+#tool-cover .cv-drag-over .cv-upload-zone{border-color:rgba(255,255,255,0.60);background:rgba(255,255,255,0.08)}
+#tool-cover .cv-palette-panel{display:none;flex-direction:column;gap:10px;width:100%;padding-top:4px;border-top:1px solid rgba(255,255,255,0.07)}
+#tool-cover .cv-palette-label{font-size:10px;font-weight:600;letter-spacing:0.10em;text-transform:uppercase;color:rgba(255,255,255,0.28)}
+#tool-cover .cv-palette-swatches{display:flex;flex-direction:column;gap:7px}
+#tool-cover .cv-swatch-row{display:flex;align-items:center;gap:10px;cursor:pointer;border-radius:10px;padding:5px 8px;transition:background 0.15s}
+#tool-cover .cv-swatch-row:hover{background:rgba(255,255,255,0.06)}
+#tool-cover .cv-swatch-dot{width:28px;height:28px;border-radius:8px;flex-shrink:0;border:1px solid rgba(255,255,255,0.12);box-shadow:0 2px 8px rgba(0,0,0,0.25);transition:background-color 0.6s ease}
+#tool-cover .cv-swatch-info{display:flex;flex-direction:column;gap:2px;flex:1}
+#tool-cover .cv-swatch-name{font-size:10px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:rgba(255,255,255,0.35)}
+#tool-cover .cv-swatch-hex{font-size:14px;font-weight:700;letter-spacing:0.06em;color:rgba(255,255,255,0.88);font-family:'JetBrains Mono',monospace}
+#tool-cover .cv-copy-btn{font-size:10px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:rgba(255,255,255,0.22);transition:color 0.15s;white-space:nowrap;user-select:none}
+#tool-cover .cv-swatch-row:hover .cv-copy-btn{color:rgba(255,255,255,0.55)}
+#tool-cover .cv-copy-btn.copied{color:rgba(120,220,160,0.85)!important}
+</style>
+</head>
+<body>
+
+<!-- Background layers -->
+<div class="gen-bg" id="genBg"></div>
+<div class="ana-bg" id="anaBg"></div>
+<div class="cover-bg" id="coverBg"></div>
+
+<div class="page-wrap">
+
+  <!-- ── SHARED HEADER ── -->
+  <header>
+    <div class="logo">
+      <div class="logo-mark gen" id="logoMark">Z</div>
+      <div>
+        <div class="logo-text">Zehn</div>
+        <div class="logo-sub">Internal Tools</div>
+      </div>
+    </div>
+    <div class="header-badge" id="headerBadge">Script Generator v1.3</div>
+  </header>
+
+  <!-- ── TOP NAV ── -->
+  <div class="tool-nav">
+    <button class="tool-nav-btn active gen-active" id="nav-generator" onclick="showTool('generator')">
+      <span class="tool-nav-dot" style="background:var(--green)"></span>
+      Script Generator
+    </button>
+    <button class="tool-nav-btn" id="nav-analyser" onclick="showTool('analyser')">
+      <span class="tool-nav-dot" style="background:var(--blue)"></span>
+      Audio Analyser
+    </button>
+    <button class="tool-nav-btn" id="nav-cover" onclick="showTool('cover')">
+      <span class="tool-nav-dot" style="background:var(--amber)"></span>
+      Book Cover
+    </button>
+  </div>
+
+  <!-- ════════════════════════════════
+       TOOL 1 — SCRIPT GENERATOR
+  ════════════════════════════════ -->
+  <div id="tool-generator">
+
+    <div class="page-title">
+      <h1>Generate a<br><em class="em-gen">book script</em></h1>
+      <p>Enter a book title and author. Get the full script, SSML, metadata, insights, and chapters in one go.</p>
+    </div>
+
+    <div class="api-section">
+      <div class="api-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+        </svg>
+      </div>
+      <div class="api-info">
+        <p><strong>Anthropic API key required.</strong> Your key runs entirely in your browser and is sent only to Anthropic's servers. Check "Remember key" to save it locally on this device.</p>
+        <div class="key-input-wrap">
+          <input type="password" id="apiKey" placeholder="sk-ant-api03-..." autocomplete="off" />
+          <button class="toggle-vis" onclick="toggleKeyVis()" title="Show or hide key">
+            <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+        <div class="remember-row">
+          <input type="checkbox" id="rememberKey" onchange="handleRemember()" />
+          <label for="rememberKey">Remember key on this device</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Book details</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="bookTitle">Book title</label>
+          <input type="text" id="bookTitle" placeholder="e.g. Atomic Habits" />
+        </div>
+        <div class="form-group">
+          <label for="bookAuthor">Author name</label>
+          <input type="text" id="bookAuthor" placeholder="e.g. James Clear" />
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="language">Language</label>
+          <select id="language" onchange="updateLangHint()">
+            <option value="en-US">English (US)</option>
+            <option value="en-GB">English (UK)</option>
+            <option value="ar-SA">Arabic</option>
+            <option value="ru-RU">Russian</option>
+            <option value="tg-TJ">Tajik</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="duration">Target duration</label>
+          <select id="duration">
+            <option value="15">15 minutes (7 chapters)</option>
+            <option value="16">16 minutes (8 chapters)</option>
+            <option value="18">18 minutes (9 chapters)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category">
+            <option value="Leadership">Leadership</option>
+            <option value="Productivity">Productivity</option>
+            <option value="Mindset">Mindset</option>
+            <option value="Business">Business</option>
+            <option value="Money and Finance">Money and Finance</option>
+            <option value="Relationships">Relationships</option>
+            <option value="Health and Wellbeing">Health and Wellbeing</option>
+            <option value="Science and Philosophy">Science and Philosophy</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="tone">Script tone</label>
+          <select id="tone">
+            <option value="conversational and warm">Conversational and warm</option>
+            <option value="energetic and motivating">Energetic and motivating</option>
+            <option value="calm and reflective">Calm and reflective</option>
+            <option value="bold and direct">Bold and direct</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-wrap">
+        <button class="btn-generate" id="generateBtn" onclick="generate()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Generate everything
+        </button>
+        <div class="form-group" style="flex-direction:row;align-items:center;gap:8px;margin:0;">
+          <select id="modelSelect" style="padding:10px 32px 10px 12px;font-size:12px;border-radius:var(--radius-sm);min-width:0;">
+            <option value="claude-haiku-4-5-20251001">Haiku — cheap &amp; fast (~$0.02)</option>
+            <option value="claude-sonnet-4-20250514" selected>Sonnet — balanced (~$0.07)</option>
+            <option value="claude-opus-4-6">Opus — best quality (~$0.35)</option>
+          </select>
+        </div>
+        <button class="btn-secondary" id="clearBtn" onclick="clearAll()">Clear</button>
+        <span class="shortcut-hint">
+          <span class="key-badge" id="modKey">Cmd</span>
+          <span class="key-badge">Enter</span>
+          to generate
+        </span>
+      </div>
+      <div class="error-msg" id="genErrorMsg"></div>
+    </div>
+
+    <div class="loading-panel" id="loadingPanel">
+      <div class="loading-orb"></div>
+      <div><div class="loading-step" id="loadingStep">Analysing the book...</div></div>
+      <div class="loading-divider"></div>
+      <div>
+        <div class="loading-tip-label">Did you know?</div>
+        <div class="loading-tip" id="loadingTip">Great microlearning scripts open with a question, not an answer.</div>
+      </div>
+      <div class="loading-progress-bar"><div class="loading-progress-fill" id="genProgressFill"></div></div>
+    </div>
+
+    <div class="output-wrap" id="outputWrap">
+      <div class="card">
+        <div class="output-header">
+          <div>
+            <div class="output-book-title" id="outTitle"></div>
+            <div class="output-book-author" id="outAuthor"></div>
+            <div id="outTranslatedTitle" style="display:none;font-size:17px;font-weight:700;color:var(--amber);letter-spacing:-0.01em;margin-top:6px;direction:auto;"></div>
+            <div class="output-chips" id="outChips"></div>
+          </div>
+          <div class="output-actions">
+            <button class="btn-action" id="copyAllBtn" onclick="copyAll()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy all
+            </button>
+            <button class="btn-action" onclick="downloadAll()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download
+            </button>
+          </div>
+        </div>
+
+        <div class="tabs-wrap">
+          <button class="tab-btn active" onclick="switchTab('script',this)"><span class="tab-dot" style="background:var(--green)"></span>Script</button>
+          <button class="tab-btn" onclick="switchTab('ssml',this)"><span class="tab-dot" style="background:var(--purple)"></span>SSML</button>
+          <button class="tab-btn" onclick="switchTab('meta',this)"><span class="tab-dot" style="background:var(--amber)"></span>Metadata</button>
+          <button class="tab-btn" onclick="switchTab('chapters',this)"><span class="tab-dot" style="background:var(--blue)"></span>Chapters</button>
+        </div>
+
+        <div class="tab-pane active" id="tab-script">
+          <div class="script-body" id="scriptBody"></div>
+          <div class="quality-row" id="qualityRow">
+            <div class="quality-dot"></div>
+            <div class="quality-text" id="qualityText"></div>
+          </div>
+          <div class="word-count-bar">
+            <span class="wc-stat" id="wcStat"></span>
+          </div>
+        </div>
+
+        <div class="tab-pane" id="tab-ssml">
+          <div class="ssml-note">
+            <strong>How to use this in Microsoft Speech Studio:</strong> Open your script in Speech Studio, switch the input mode to <strong>SSML</strong> (toggle at the top of the text area), then paste this entire block. The <strong>&lt;break time="2000ms"/&gt;</strong> tags create a 2-second silence between chapters so you can detect chapter boundaries when you upload the audio to the Analyser tool. Each sentence is on its own line for clean subtitle generation. The <strong>xml:lang</strong> attribute updates automatically based on your selected language.
+          </div>
+          <div style="position:relative;">
+            <button class="meta-copy-btn" id="ssmlCopyBtn" onclick="copySsml()" style="position:absolute;top:10px;right:10px;z-index:2;">Copy SSML</button>
+            <div class="ssml-body" id="ssmlBody"></div>
+          </div>
+        </div>
+
+        <div class="tab-pane" id="tab-meta">
+          <div class="meta-field">
+            <div class="meta-field-header">
+              <div>
+                <div class="meta-label">Short description</div>
+                <div class="meta-where">Shown under the book title on home and explore pages</div>
+              </div>
+            </div>
+            <div class="meta-content" id="shortDescContent">
+              <button class="meta-copy-btn" id="shortDescCopyBtn" onclick="copyMeta('shortDescText','shortDescCopyBtn')">Copy</button>
+              <div id="shortDescText" style="padding-right:48px;"></div>
+            </div>
+            <div class="char-counter" id="shortDescCounter"></div>
+          </div>
+          <div class="meta-field">
+            <div class="meta-field-header">
+              <div>
+                <div class="meta-label">Long description</div>
+                <div class="meta-where">Shown on the book details page when a user taps the book</div>
+              </div>
+            </div>
+            <div class="meta-content" id="longDescContent">
+              <button class="meta-copy-btn" id="longDescCopyBtn" onclick="copyMeta('longDescText','longDescCopyBtn')">Copy</button>
+              <div id="longDescText" style="padding-right:48px;"></div>
+            </div>
+            <div class="char-counter" id="longDescCounter"></div>
+          </div>
+          <div class="meta-field">
+            <div class="meta-field-header">
+              <div>
+                <div class="meta-label">Key insights</div>
+                <div class="meta-where">Shown on the book details page before the user starts listening</div>
+              </div>
+            </div>
+            <div class="meta-content" style="padding:12px 14px;position:relative;">
+              <button class="meta-copy-btn" id="insightsCopyBtn" onclick="copyInsights()">Copy</button>
+              <ul class="insights-list" id="insightsList" style="padding-right:48px;"></ul>
+            </div>
+            <div class="insights-char-counter" id="insightsCounter"></div>
+          </div>
+        </div>
+
+        <div class="tab-pane" id="tab-chapters">
+          <div class="chapter-list" id="chapterList"></div>
+          <div class="word-count-bar" style="margin-top:20px;">
+            <span class="wc-stat" id="chapterStat"></span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="history-section" id="historySection">
+      <div class="card">
+        <div class="card-title">Recent scripts (this session)</div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+    </div>
+
+  </div><!-- /tool-generator -->
+
+
+  <!-- ════════════════════════════════
+       TOOL 2 — AUDIO ANALYSER
+  ════════════════════════════════ -->
+  <div id="tool-analyser" style="display:none">
+
+    <div class="page-title">
+      <h1>Detect <em class="em-ana">chapter timestamps</em></h1>
+      <p>Upload your generated audio file. The tool finds the 2-second silence breaks between chapters and gives you the exact start and end time of each one in seconds.</p>
+    </div>
+
+    <div class="card">
+      <div class="info-box">
+        <strong>Before you upload:</strong> Make sure your audio was generated from the SSML output of the Script Generator, which includes a <strong>2000ms silence break</strong> between every chapter. This tool detects those silences automatically and maps them to your chapter list.
+      </div>
+
+      <div id="dropZone" class="drop-zone">
+        <input type="file" id="audioFile" accept=".mp3,.wav,.ogg,.m4a,.aac,.flac,.webm" onchange="handleFileSelect(event)" />
+        <div class="drop-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+          </svg>
+        </div>
+        <div class="drop-title">Drop your audio file here</div>
+        <div class="drop-sub">or click to browse</div>
+        <div class="drop-formats">
+          <span class="format-badge">MP3</span>
+          <span class="format-badge">WAV</span>
+          <span class="format-badge">M4A</span>
+          <span class="format-badge">OGG</span>
+          <span class="format-badge">AAC</span>
+        </div>
+      </div>
+
+      <div id="fileInfo" style="display:none;margin-top:16px;"></div>
+      <div class="error-msg" id="anaErrorMsg"></div>
+    </div>
+
+    <div class="card" id="settingsCard" style="display:none;">
+      <div class="card-title">Analysis settings</div>
+      <div class="settings-row">
+        <div class="setting-group">
+          <label for="numChapters">Number of chapters</label>
+          <select id="numChapters" onchange="buildChapterNameInputs()">
+            <option value="7">7 chapters</option>
+            <option value="8">8 chapters</option>
+            <option value="9">9 chapters</option>
+          </select>
+          <div class="setting-hint">Match this to your script generator output.</div>
+        </div>
+        <div class="setting-group">
+          <label for="silenceThreshold">Silence sensitivity</label>
+          <select id="silenceThreshold">
+            <option value="0.02">High (very quiet audio)</option>
+            <option value="0.04" selected>Medium (recommended)</option>
+            <option value="0.08">Low (noisy audio)</option>
+          </select>
+          <div class="setting-hint">Use Medium unless detection misses gaps.</div>
+        </div>
+        <div class="setting-group">
+          <label for="minSilenceDuration">Min silence duration (ms)</label>
+          <select id="minSilenceDuration">
+            <option value="1200">1200ms</option>
+            <option value="1500" selected>1500ms (recommended)</option>
+            <option value="1800">1800ms</option>
+          </select>
+          <div class="setting-hint">Gaps shorter than this are ignored.</div>
+        </div>
+      </div>
+
+      <div class="chapter-names-wrap">
+        <div class="card-title" style="margin-bottom:12px;">Chapter titles (optional)</div>
+        <div class="chapter-name-list" id="chapterNameList"></div>
+      </div>
+
+      <button class="btn-analyse" id="analyseBtn" onclick="analyseAudio()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Analyse audio
+      </button>
+    </div>
+
+    <div class="progress-wrap" id="anaProgressWrap">
+      <div class="progress-label" id="anaProgressLabel">Decoding audio...</div>
+      <div class="progress-bar"><div class="progress-fill" id="anaProgressFill"></div></div>
+      <div class="progress-status" id="anaProgressStatus"></div>
+    </div>
+
+    <div class="waveform-wrap" id="waveformWrap">
+      <canvas id="waveform"></canvas>
+      <div style="font-size:11px;color:var(--text-mute);margin-top:6px;text-align:center;">Waveform preview. Green lines mark detected chapter breaks.</div>
+    </div>
+
+    <div class="results-section" id="resultsSection">
+      <div class="card">
+        <div class="results-header">
+          <div>
+            <div class="results-title">Chapter timestamps</div>
+            <div class="results-meta" id="resultsMeta"></div>
+          </div>
+          <button class="btn-copy-results" id="copyResultsBtn" onclick="copyResults()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy timestamps
+          </button>
+        </div>
+        <div class="chapter-result-list" id="chapterResultList"></div>
+        <div class="summary-bar" id="summaryBar"></div>
+        <div id="warningBox" style="display:none;" class="warning-box"></div>
+      </div>
+    </div>
+
+  </div><!-- /tool-analyser -->
+
+
+  <!-- ════════════════════════════════
+       TOOL 3 — BOOK COVER
+  ════════════════════════════════ -->
+  <div id="tool-cover" style="display:none">
+
+    <canvas id="cv-canvas" style="display:none;"></canvas>
+    <input type="file" id="cv-file-input" accept="image/*" style="display:none;" />
+
+    <div class="cv-scene">
+      <div class="cv-card" id="cv-card">
+
+        <div class="cv-arch-wrap" id="cv-arch-wrap">
+          <div class="cv-arch" id="cv-arch"></div>
+
+          <div class="cv-upload-zone" id="cv-upload-zone" onclick="document.getElementById('cv-file-input').click()">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <span>Upload cover</span>
+          </div>
+
+          <img class="cv-book-cover" id="cv-book-cover" src="" alt="Book cover" style="display:none;" />
+        </div>
+
+        <div class="cv-book-title" id="cv-book-title" style="display:none;">Your Book Title</div>
+        <div class="cv-book-author" id="cv-book-author" style="display:none;">Author Name</div>
+
+        <div class="cv-progress-wrap" id="cv-progress-wrap" style="display:none;">
+          <div class="cv-progress-label">
+            <span>Reading progress</span>
+            <span>38%</span>
+          </div>
+          <div class="cv-progress-track">
+            <div class="cv-progress-fill" id="cv-progress-fill"></div>
+          </div>
+        </div>
+
+        <div class="cv-actions" id="cv-actions" style="display:none;">
+          <button class="cv-btn cv-btn-primary">Continue</button>
+          <button class="cv-btn cv-btn-secondary" onclick="document.getElementById('cv-file-input').click()">Change</button>
+        </div>
+
+        <div class="cv-palette-panel" id="cv-palette-panel">
+          <div class="cv-palette-label">Extracted Colors</div>
+          <div class="cv-palette-swatches">
+
+            <div class="cv-swatch-row" onclick="cvCopyHex('cv-arch-hex', this)">
+              <div class="cv-swatch-dot" id="cv-dot-arch"></div>
+              <div class="cv-swatch-info">
+                <span class="cv-swatch-name">Arch</span>
+                <span class="cv-swatch-hex" id="cv-arch-hex">#——</span>
+              </div>
+              <span class="cv-copy-btn">Copy</span>
+            </div>
+
+            <div class="cv-swatch-row" onclick="cvCopyHex('cv-bg-hex', this)">
+              <div class="cv-swatch-dot" id="cv-dot-bg"></div>
+              <div class="cv-swatch-info">
+                <span class="cv-swatch-name">Background</span>
+                <span class="cv-swatch-hex" id="cv-bg-hex">#——</span>
+              </div>
+              <span class="cv-copy-btn">Copy</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /tool-cover -->
+
+  <footer>
+    <p>Internal use only. Zehn team.</p>
+    <div class="footer-logo">Zehn<span> +</span></div>
+  </footer>
+
+</div><!-- /page-wrap -->
+
+<script>
+/* ═══════════════════════════════════════
+   NAV SWITCHER
+═══════════════════════════════════════ */
+function showTool(name) {
+  const isGen = name === 'generator';
+  const isAna = name === 'analyser';
+  const isCov = name === 'cover';
+
+  document.getElementById('tool-generator').style.display = isGen ? '' : 'none';
+  document.getElementById('tool-analyser').style.display  = isAna ? '' : 'none';
+  document.getElementById('tool-cover').style.display     = isCov ? '' : 'none';
+
+  const navGen = document.getElementById('nav-generator');
+  const navAna = document.getElementById('nav-analyser');
+  const navCov = document.getElementById('nav-cover');
+  navGen.className = 'tool-nav-btn' + (isGen ? ' active gen-active' : '');
+  navAna.className = 'tool-nav-btn' + (isAna ? ' active ana-active' : '');
+  navCov.className = 'tool-nav-btn' + (isCov ? ' active cov-active' : '');
+
+  // badge & logo colour
+  document.getElementById('headerBadge').textContent = isGen ? 'Script Generator v1.3' : isAna ? 'Audio Analyser v1.0' : 'Book Cover v1.0';
+  const lm = document.getElementById('logoMark');
+  lm.className = 'logo-mark ' + (isGen ? 'gen' : isAna ? 'ana' : 'cov');
+
+  // backgrounds
+  document.getElementById('genBg').style.opacity   = isGen ? '1' : '0';
+  document.getElementById('anaBg').style.opacity   = isAna ? '1' : '0';
+  document.getElementById('coverBg').style.opacity = isCov ? '1' : '0';
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ═══════════════════════════════════════
+   SCRIPT GENERATOR
+═══════════════════════════════════════ */
+const WORDS_PER_MIN = 130; // default for display stats
+
+// TTS speaking rates per language (words per minute).
+// These are calibrated to match Microsoft Speech Studio output so the
+// script word count actually produces the requested audio duration.
+const LANG_WPM = {
+  'en-US': 135,
+  'en-GB': 135,
+  'ar-SA': 155, // Arabic TTS reads faster; needs more words to fill the same duration
+  'ru-RU': 130,
+  'tg-TJ': 130,
+};
+let currentData = null;
+let sessionHistory = [];
+let loadingInterval = null;
+let progressInterval = null;
+
+const LANG_MAP = {
+  'en-US': { label: 'English (US)', xmlLang: 'en-US' },
+  'en-GB': { label: 'English (UK)', xmlLang: 'en-GB' },
+  'ar-SA': { label: 'Arabic',       xmlLang: 'ar-SA' },
+  'ru-RU': { label: 'Russian',      xmlLang: 'ru-RU' },
+  'tg-TJ': { label: 'Tajik',        xmlLang: 'tg-TJ' },
+};
+
+const LOADING_STEPS = ['Analysing the book...','Identifying core ideas...','Structuring the narrative...','Writing the opening hook...','Building each chapter...','Generating metadata...','Writing key insights...','Building SSML output...','Finalising everything...'];
+const LOADING_TIPS  = ['Great microlearning scripts open with a question, not an answer.','The best hooks make you feel the problem before you hear the solution.','Short sentences read faster out loud.','Zehn scripts synthesise themes, not chapters. That is what makes them feel fresh.','A good analogy teaches faster than any definition.','Second-person scripts perform better because listeners feel personally addressed.','The closing takeaway is the most remembered part of any audio.','Every idea stays grounded in what the author actually argues.','A conversational tone is not less intelligent. It is just more listenable.','Short descriptions should make someone stop scrolling and tap.','Insights should feel like spoilers that make you more curious.','SSML break tags create clean silences the audio analyser can detect.'];
+
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('zehn_api_key');
+  if (saved) { document.getElementById('apiKey').value = saved; document.getElementById('rememberKey').checked = true; }
+  document.getElementById('modKey').textContent = /mac/i.test(navigator.platform) ? 'Cmd' : 'Ctrl';
+});
+
+function updateLangHint() {}
+
+function toggleKeyVis() {
+  const input = document.getElementById('apiKey');
+  const icon  = document.getElementById('eyeIcon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  } else {
+    input.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+}
+
+function handleRemember() {
+  const k = document.getElementById('apiKey').value.trim();
+  if (document.getElementById('rememberKey').checked && k) localStorage.setItem('zehn_api_key', k);
+  else localStorage.removeItem('zehn_api_key');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('apiKey').addEventListener('input', () => {
+    if (document.getElementById('rememberKey').checked) {
+      const k = document.getElementById('apiKey').value.trim();
+      if (k) localStorage.setItem('zehn_api_key', k);
+    }
+  });
+});
+
+function startLoadingAnimation() {
+  let stepIdx = 0, tipIdx = Math.floor(Math.random() * LOADING_TIPS.length), progress = 0;
+  const stepEl = document.getElementById('loadingStep'), tipEl = document.getElementById('loadingTip'), fillEl = document.getElementById('genProgressFill');
+  stepEl.textContent = LOADING_STEPS[0]; tipEl.textContent = LOADING_TIPS[tipIdx]; fillEl.style.width = '0%';
+  progressInterval = setInterval(() => { if (progress < 90) { progress += (90 - progress) * 0.022; fillEl.style.width = progress.toFixed(1) + '%'; } }, 250);
+  loadingInterval = setInterval(() => {
+    stepIdx = (stepIdx + 1) % LOADING_STEPS.length; tipIdx = (tipIdx + 1) % LOADING_TIPS.length;
+    stepEl.style.opacity = '0'; tipEl.style.opacity = '0';
+    setTimeout(() => { stepEl.textContent = LOADING_STEPS[stepIdx]; tipEl.textContent = LOADING_TIPS[tipIdx]; stepEl.style.opacity = '1'; tipEl.style.opacity = '1'; }, 440);
+  }, 2600);
+}
+function stopLoadingAnimation() {
+  clearInterval(loadingInterval); clearInterval(progressInterval);
+  document.getElementById('genProgressFill').style.width = '100%';
+}
+
+function removeEmDashes(text) {
+  return text.replace(/ — /g, ', ').replace(/—/g, ', ').replace(/ -- /g, ', ').replace(/--/g, ', ');
+}
+
+// ── SUBTITLE FIX: each sentence on its own line ──
+// Splits on ". ", "! ", "? " (sentence-ending punctuation followed by a space)
+// so each sentence becomes its own line in the SSML output.
+function sentenceLines(text) {
+  return text
+    .trim()
+    .replace(/([.!?])\s+/g, '$1\n')
+    .trim();
+}
+
+function buildSSML(chapters, langCode, bookTitle) {
+  const xmlLang = (LANG_MAP[langCode] || LANG_MAP['en-US']).xmlLang;
+  // Book title announced at the very start, followed by a short pause
+  const intro = bookTitle
+    ? `${bookTitle}\n<break time="700ms"/>\n\n`
+    : '';
+  const inner = chapters.map((ch, i) => {
+    const isLast = i === chapters.length - 1;
+    // Chapter number spoken before each chapter, then a short pause
+    const chapterLabel = `Chapter ${i + 1}.\n<break time="400ms"/>`;
+    // Each sentence on its own line for clean subtitle sync
+    const content = sentenceLines(ch.content.trim());
+    return chapterLabel + '\n' + content + (isLast ? '' : '\n<break time="2000ms"/>');
+  }).join('\n\n');
+  return `<speak version="1.0" xmlns="http://www.w3.org/2001/XMLSchema-instance" xml:lang="${xmlLang}">\n${intro}${inner}\n</speak>`;
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function charCounterClass(len, max) {
+  if (len > max) return 'over';
+  if (len > max * 0.9) return 'warn';
+  return '';
+}
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function renderSSMLHighlighted(ssml) {
+  return ssml.split(/(<[^>]+>)/).map(part => {
+    if (!part) return '';
+    if (part.startsWith('<break')) return `<span class="ssml-break">${escapeHtml(part)}</span>`;
+    if (part.startsWith('<')) return `<span class="ssml-tag">${escapeHtml(part)}</span>`;
+    return escapeHtml(part);
+  }).join('');
+}
+
+function renderOutput(data) {
+  currentData = data;
+  const { title, author, langCode, category, tone, duration, script, ssml, translatedTitle, shortDesc, longDesc, insights, chapters } = data;
+  const langLabel = (LANG_MAP[langCode] || {}).label || langCode;
+  const isTranslated = translatedTitle && translatedTitle !== title;
+
+  document.getElementById('outTitle').textContent  = title;
+  document.getElementById('outAuthor').textContent = 'by ' + author;
+  // Show translated title below the original when the language is not English
+  const transEl = document.getElementById('outTranslatedTitle');
+  if (isTranslated) {
+    transEl.textContent = translatedTitle;
+    transEl.style.display = 'block';
+  } else {
+    transEl.style.display = 'none';
+  }
+  document.getElementById('outChips').innerHTML =
+    `<span class="chip green">${langLabel}</span><span class="chip">${category}</span><span class="chip">${duration} min</span><span class="chip">${tone}</span>`;
+
+  document.getElementById('scriptBody').textContent = script;
+  const wc = script.trim().split(/\s+/).length;
+  const estMins = Math.round(wc / WORDS_PER_MIN);
+  document.getElementById('wcStat').innerHTML = `<strong>${wc.toLocaleString()} words</strong> &middot; approx. ${estMins} min of audio`;
+  const hasEmDash = /—/.test(script);
+  document.getElementById('qualityRow').classList.add('show');
+  document.getElementById('qualityText').innerHTML = hasEmDash
+    ? 'Script generated. Dashes were cleaned automatically.'
+    : `Script generated. <strong>No em dashes detected.</strong> Ready to upload.`;
+
+  document.getElementById('ssmlBody').innerHTML = renderSSMLHighlighted(ssml);
+
+  document.getElementById('shortDescText').textContent = shortDesc;
+  const sc = shortDesc.length;
+  const shortCounter = document.getElementById('shortDescCounter');
+  shortCounter.textContent = `${sc} / 110 characters`;
+  shortCounter.className = 'char-counter ' + charCounterClass(sc, 110);
+
+  document.getElementById('longDescText').textContent = longDesc;
+  const lc = longDesc.length;
+  const longCounter = document.getElementById('longDescCounter');
+  longCounter.textContent = `${lc} / 370 characters`;
+  longCounter.className = 'char-counter ' + charCounterClass(lc, 370);
+
+  document.getElementById('insightsList').innerHTML = insights.map(ins =>
+    `<li class="insight-item"><div class="insight-bullet"></div><div class="insight-text">${ins}</div></li>`
+  ).join('');
+  const totalInsightChars = insights.join(' ').length;
+  const insCounter = document.getElementById('insightsCounter');
+  insCounter.textContent = `${totalInsightChars} / 350 characters total`;
+  insCounter.className = 'insights-char-counter' + (totalInsightChars > 350 ? ' over' : totalInsightChars > 315 ? ' warn' : '');
+
+  document.getElementById('chapterList').innerHTML = chapters.map((ch, i) => {
+    const cWc = ch.content.trim().split(/\s+/).length;
+    const cMins = Math.round(cWc / WORDS_PER_MIN);
+    return `
+    <div class="chapter-item" id="chapter-${i}">
+      <div class="chapter-header" onclick="toggleChapter(${i})">
+        <div class="chapter-meta">
+          <span class="chapter-num">Ch ${i+1}</span>
+          <span class="chapter-title">${ch.title}</span>
+        </div>
+        <div class="chapter-badges">
+          <span class="chapter-badge">${cWc} words</span>
+          <span class="chapter-badge">~${cMins} min</span>
+        </div>
+        <span class="chapter-toggle">&#8250;</span>
+      </div>
+      <div class="chapter-body">${ch.content}
+        <div class="chapter-actions">
+          <button class="btn-action" onclick="copyChapter(${i},event)" style="font-size:12px;padding:7px 14px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy chapter
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const totalCh = chapters.reduce((s, ch) => s + ch.content.trim().split(/\s+/).length, 0);
+  document.getElementById('chapterStat').innerHTML =
+    `<strong>${chapters.length} chapters</strong> &middot; ${totalCh.toLocaleString()} total words &middot; 2000ms break between each chapter`;
+
+  document.getElementById('outputWrap').classList.add('visible');
+  document.getElementById('clearBtn').style.display = 'inline-flex';
+
+  sessionHistory.unshift({ title, author, langCode, category, tone, duration, data });
+  renderHistory();
+  setTimeout(() => document.getElementById('outputWrap').scrollIntoView({ behavior:'smooth', block:'start' }), 120);
+}
+
+function toggleChapter(i) { document.getElementById('chapter-'+i).classList.toggle('open'); }
+
+async function generate() {
+  const title    = document.getElementById('bookTitle').value.trim();
+  const author   = document.getElementById('bookAuthor').value.trim();
+  const langCode = document.getElementById('language').value;
+  const langLabel = (LANG_MAP[langCode] || {}).label || langCode;
+  const duration = parseInt(document.getElementById('duration').value);
+  const category = document.getElementById('category').value;
+  const tone     = document.getElementById('tone').value;
+  const apiKey   = document.getElementById('apiKey').value.trim();
+
+  genHideError();
+  if (!title || !author) { genShowError('Please enter both a book title and author name.'); return; }
+  if (!apiKey || !apiKey.startsWith('sk-')) { genShowError('Please enter a valid Anthropic API key. It should start with "sk-ant-".'); return; }
+
+  setLoading(true);
+  const numChapters = duration === 15 ? 7 : duration === 16 ? 8 : 9;
+  const langWPM = LANG_WPM[langCode] || 135;
+  const targetWords = duration * langWPM;
+  const wordsPerChapter = Math.round(targetWords / numChapters);
+
+  const prompt = `You are a content writer for Zehn, a microlearning audio app. Generate all content for the book below. Return ONLY valid JSON with no markdown, no backticks, no explanation.
+
+Book: "${title}" by ${author}
+Language: ${langLabel}
+Category: ${category}
+Tone: ${tone}
+Total target: ${targetWords} words across ${numChapters} chapters (MINIMUM ${wordsPerChapter} words per chapter — this is a TTS audio script and must produce exactly ${duration} minutes of audio)
+
+Return this exact JSON structure:
+{
+  "translatedTitle": "The book title translated into ${langLabel}. If the language is English, return the original title as-is.",
+  "shortDesc": "max 110 characters. Punchy. Shown under book title on home and explore pages. No em dashes.",
+  "longDesc": "max 370 characters. Shown on book details page. Context, promise, intrigue. Tone: ${tone}. No em dashes.",
+  "insights": ["sentence","sentence","sentence","sentence","sentence"],
+  "chapters": [
+    { "title": "3-6 word chapter title in ${langLabel}", "content": "MINIMUM ${wordsPerChapter} words of spoken audio script. Do not write less." }
+  ]
+}
+
+Insights rules:
+- Exactly 5 items
+- Each is one punchy, specific sentence
+- Total chars across all 5 under 350
+- Feel like compelling spoilers
+- No em dashes, no ALL CAPS
+
+Chapter rules:
+- Exactly ${numChapters} chapters
+- Each chapter MUST contain at least ${wordsPerChapter} words — write more if needed, never less. This is critical for hitting the ${duration}-minute audio target.
+- Chapter 1 opens with a compelling hook
+- Each covers one distinct core idea
+- Last chapter closes with a clear actionable takeaway
+- Tone: ${tone}, second person ("you","your")
+- No em dashes, no double hyphens, no ALL CAPS
+- No stage directions, timestamps, or formatting marks
+- No mention of AI, "summary", "audiobook", "chapter", or "lesson"
+- All text in ${langLabel}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({ model: document.getElementById('modelSelect').value, max_tokens: 8000, messages: [{ role:'user', content: prompt }] })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      const msg = data.error?.message || 'Unknown API error.';
+      if (msg.includes('authentication') || msg.includes('api_key') || msg.includes('invalid')) genShowError('Invalid API key. Double-check it and try again.');
+      else if (msg.includes('credit') || msg.includes('billing')) genShowError('Your API account has no credits. Top up at console.anthropic.com.');
+      else genShowError('API error: ' + msg);
+      setLoading(false); return;
+    }
+    let raw = data.content?.[0]?.text || '';
+    if (!raw) { genShowError('No content returned. Please try again.'); setLoading(false); return; }
+    raw = raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/```\s*$/i,'').trim();
+    let parsed;
+    try { parsed = JSON.parse(raw); }
+    catch(e) { genShowError('The AI returned an unexpected format. Please try again.'); setLoading(false); return; }
+
+    parsed.translatedTitle = parsed.translatedTitle || title;
+    parsed.shortDesc = removeEmDashes(parsed.shortDesc || '');
+    parsed.longDesc  = removeEmDashes(parsed.longDesc  || '');
+    parsed.insights  = (parsed.insights || []).map(ins => removeEmDashes(ins));
+    parsed.chapters  = (parsed.chapters || []).map(ch => ({
+      title:   removeEmDashes(ch.title   || ''),
+      content: removeEmDashes(ch.content || '')
+    }));
+
+    const fullScript = parsed.chapters.map((ch, i) =>
+      `Chapter ${i+1}: ${ch.title}\n\n${ch.content}`
+    ).join('\n\n' + '='.repeat(40) + '\n\n');
+
+    // Use translated title in SSML so the audio announces the book name in the target language
+    const ssml = buildSSML(parsed.chapters, langCode, parsed.translatedTitle);
+
+    renderOutput({ title, author, langCode, category, tone, duration, script: fullScript, ssml,
+      translatedTitle: parsed.translatedTitle,
+      shortDesc: parsed.shortDesc, longDesc: parsed.longDesc, insights: parsed.insights, chapters: parsed.chapters });
+  } catch(err) {
+    genShowError('Could not reach the Anthropic API. Check your internet connection and try again.');
+  }
+  setLoading(false);
+}
+
+function copySsml() {
+  if (!currentData) return;
+  navigator.clipboard.writeText(currentData.ssml).then(() => {
+    const btn = document.getElementById('ssmlCopyBtn');
+    btn.textContent = 'Copied!'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy SSML'; btn.classList.remove('copied'); }, 2500);
+  });
+}
+function copyMeta(textId, btnId) {
+  const text = document.getElementById(textId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById(btnId);
+    btn.textContent = 'Copied!'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2500);
+  });
+}
+function copyInsights() {
+  if (!currentData) return;
+  const text = currentData.insights.map(i => '- ' + i).join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('insightsCopyBtn');
+    btn.textContent = 'Copied!'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2500);
+  });
+}
+function copyChapter(i, event) {
+  if (!currentData) return;
+  const ch = currentData.chapters[i];
+  navigator.clipboard.writeText(`Chapter ${i+1}: ${ch.title}\n\n${ch.content}`).then(() => {
+    const btn = event.currentTarget;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+    setTimeout(() => { btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy chapter`; }, 2500);
+  });
+}
+function copyAll() {
+  if (!currentData) return;
+  const { title, author, shortDesc, longDesc, insights, chapters, ssml } = currentData;
+  const parts = [
+    `ZEHN BOOK CONTENT\n${title}\nby ${author}\n${'='.repeat(50)}`,
+    `SHORT DESCRIPTION (110 chars max)\n${shortDesc}`,
+    `LONG DESCRIPTION (370 chars max)\n${longDesc}`,
+    `KEY INSIGHTS\n${insights.map(i => '- '+i).join('\n')}`,
+    `SSML (paste into Microsoft Speech Studio in SSML mode)\n${ssml}`,
+    `CHAPTERS\n${chapters.map((ch,i) => `Chapter ${i+1}: ${ch.title}\n\n${ch.content}`).join('\n\n'+'-'.repeat(40)+'\n\n')}`,
+  ];
+  navigator.clipboard.writeText(parts.join('\n\n'+'='.repeat(50)+'\n\n')).then(() => {
+    const btn = document.getElementById('copyAllBtn');
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy all`; }, 2600);
+  });
+}
+function downloadAll() {
+  if (!currentData) return;
+  const { title, author, shortDesc, longDesc, insights, chapters, ssml } = currentData;
+  const slug = title.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  const parts = [
+    `ZEHN BOOK CONTENT\n${title}\nby ${author}\n${'='.repeat(50)}`,
+    `SHORT DESCRIPTION (110 chars max)\n${shortDesc}`,
+    `LONG DESCRIPTION (370 chars max)\n${longDesc}`,
+    `KEY INSIGHTS\n${insights.map(i => '- '+i).join('\n')}`,
+    `SSML (paste into Microsoft Speech Studio in SSML mode)\n${ssml}`,
+    `CHAPTERS\n${chapters.map((ch,i) => `Chapter ${i+1}: ${ch.title}\n\n${ch.content}`).join('\n\n'+'-'.repeat(40)+'\n\n')}`,
+  ];
+  const blob = new Blob([parts.join('\n\n'+'='.repeat(50)+'\n\n')], { type:'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `zehn-${slug}.txt`; a.click();
+}
+function clearAll() {
+  document.getElementById('bookTitle').value = '';
+  document.getElementById('bookAuthor').value = '';
+  document.getElementById('outputWrap').classList.remove('visible');
+  document.getElementById('qualityRow').classList.remove('show');
+  document.getElementById('clearBtn').style.display = 'none';
+  currentData = null; genHideError();
+  switchTab('script', document.querySelector('.tab-btn'));
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+function setLoading(on) {
+  const panel = document.getElementById('loadingPanel'), btn = document.getElementById('generateBtn');
+  if (on) {
+    panel.classList.add('visible'); btn.disabled = true;
+    btn.innerHTML = '<span style="width:14px;height:14px;border:2px solid rgba(3,33,46,0.25);border-top-color:var(--ink);border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;flex-shrink:0"></span> Generating...';
+    startLoadingAnimation();
+  } else {
+    stopLoadingAnimation();
+    setTimeout(() => panel.classList.remove('visible'), 500);
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><polygon points="5 3 19 12 5 21 5 3"/></svg> Generate everything';
+  }
+}
+function genShowError(msg) { const el = document.getElementById('genErrorMsg'); el.textContent = msg; el.classList.add('visible'); }
+function genHideError()    { document.getElementById('genErrorMsg').classList.remove('visible'); }
+
+function renderHistory() {
+  if (!sessionHistory.length) return;
+  document.getElementById('historySection').classList.add('visible');
+  document.getElementById('historyList').innerHTML = sessionHistory.slice(0,8).map((h,i) => `
+    <div class="history-item" onclick="loadHistory(${i})">
+      <div>
+        <div class="history-item-title">${h.title}</div>
+        <div class="history-item-meta">${h.author} &middot; ${(LANG_MAP[h.langCode]||{}).label||h.langCode} &middot; ${h.data.chapters.length} chapters</div>
+      </div>
+      <div class="history-item-arrow">&#8250;</div>
+    </div>`).join('');
+}
+function loadHistory(i) { renderOutput(sessionHistory[i].data); }
+
+document.addEventListener('keydown', e => {
+  if ((e.metaKey||e.ctrlKey) && e.key==='Enter' && document.getElementById('tool-generator').style.display !== 'none') generate();
+});
+
+
+/* ═══════════════════════════════════════
+   AUDIO ANALYSER
+═══════════════════════════════════════ */
+let audioBuffer   = null;
+let detectedBreaks = [];
+let chapterTimestamps = [];
+let audioDuration = 0;
+let currentFile   = null;
+
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+});
+
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) processFile(file);
+}
+function processFile(file) {
+  anaHideError();
+  currentFile = file;
+  const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+  document.getElementById('fileInfo').style.display = 'block';
+  document.getElementById('fileInfo').innerHTML = `
+    <div class="file-info">
+      <div class="file-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+      </div>
+      <div>
+        <div class="file-name">${file.name}</div>
+        <div class="file-size">${sizeMB} MB &middot; ${file.type || 'audio'}</div>
+      </div>
+      <button class="file-remove" onclick="removeFile()" title="Remove file">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+  document.getElementById('settingsCard').style.display = 'block';
+  buildChapterNameInputs();
+}
+function removeFile() {
+  currentFile = null; audioBuffer = null;
+  document.getElementById('fileInfo').style.display = 'none';
+  document.getElementById('settingsCard').style.display = 'none';
+  document.getElementById('audioFile').value = '';
+  document.getElementById('resultsSection').classList.remove('visible');
+  document.getElementById('anaProgressWrap').classList.remove('visible');
+  document.getElementById('waveformWrap').classList.remove('visible');
+  anaHideError();
+}
+function buildChapterNameInputs() {
+  const n = parseInt(document.getElementById('numChapters').value);
+  const list = document.getElementById('chapterNameList');
+  list.innerHTML = Array.from({length: n}, (_, i) => `
+    <div class="chapter-name-row">
+      <span class="chapter-name-num">Ch ${i+1}</span>
+      <input class="chapter-name-input" id="chName${i}" type="text" placeholder="Chapter title (optional)" />
+    </div>`).join('');
+}
+function fmt(secs) {
+  const m = Math.floor(secs / 60), s = Math.floor(secs % 60);
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+function setAnaProgress(pct, label, status) {
+  document.getElementById('anaProgressFill').style.width = pct + '%';
+  if (label)             document.getElementById('anaProgressLabel').textContent = label;
+  if (status !== undefined) document.getElementById('anaProgressStatus').textContent = status;
+}
+
+async function analyseAudio() {
+  if (!currentFile) { anaShowError('Please upload an audio file first.'); return; }
+  anaHideError();
+  const numChapters      = parseInt(document.getElementById('numChapters').value);
+  const silenceThreshold = parseFloat(document.getElementById('silenceThreshold').value);
+  const minSilenceDuration = parseInt(document.getElementById('minSilenceDuration').value) / 1000;
+
+  const btn = document.getElementById('analyseBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="width:14px;height:14px;border:2px solid rgba(3,33,46,0.3);border-top-color:var(--ink);border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block"></span> Analysing...';
+
+  document.getElementById('anaProgressWrap').classList.add('visible');
+  document.getElementById('resultsSection').classList.remove('visible');
+  document.getElementById('waveformWrap').classList.remove('visible');
+  setAnaProgress(5, 'Reading audio file...', '');
+
+  try {
+    const arrayBuffer = await currentFile.arrayBuffer();
+    setAnaProgress(20, 'Decoding audio...', 'This may take a moment for large files.');
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    audioDuration = audioBuffer.duration;
+    setAnaProgress(40, 'Scanning for silence gaps...', `Audio length: ${fmt(audioDuration)} (${Math.round(audioDuration)}s)`);
+
+    const channelData = [];
+    for (let c = 0; c < audioBuffer.numberOfChannels; c++) channelData.push(audioBuffer.getChannelData(c));
+    const sampleRate   = audioBuffer.sampleRate;
+    const totalSamples = audioBuffer.length;
+    const mono = new Float32Array(totalSamples);
+    for (let i = 0; i < totalSamples; i++) {
+      let sum = 0;
+      for (let c = 0; c < channelData.length; c++) sum += channelData[c][i];
+      mono[i] = sum / channelData.length;
+    }
+    setAnaProgress(60, 'Detecting chapter breaks...', 'Scanning waveform for silent regions...');
+
+    const windowSize = Math.floor(sampleRate * 0.05);
+    const windows = [];
+    for (let i = 0; i < totalSamples; i += windowSize) {
+      const end = Math.min(i + windowSize, totalSamples);
+      let sumSq = 0;
+      for (let j = i; j < end; j++) sumSq += mono[j] * mono[j];
+      windows.push({ time: i / sampleRate, rms: Math.sqrt(sumSq / (end - i)) });
+    }
+
+    const silentRegions = [];
+    let silenceStart = null;
+    for (const w of windows) {
+      if (w.rms < silenceThreshold) {
+        if (silenceStart === null) silenceStart = w.time;
+      } else {
+        if (silenceStart !== null) {
+          const duration = w.time - silenceStart;
+          if (duration >= minSilenceDuration) silentRegions.push({ start: silenceStart, end: w.time, mid: (silenceStart + w.time) / 2, duration });
+          silenceStart = null;
+        }
+      }
+    }
+    if (silenceStart !== null) {
+      const duration = audioDuration - silenceStart;
+      if (duration >= minSilenceDuration) silentRegions.push({ start: silenceStart, end: audioDuration, mid: (silenceStart + audioDuration) / 2, duration });
+    }
+    setAnaProgress(75, 'Mapping chapters to breaks...', `Found ${silentRegions.length} silence region(s).`);
+
+    const expectedBreaks = numChapters - 1;
+    detectedBreaks = [...silentRegions].sort((a,b) => b.duration - a.duration).slice(0, expectedBreaks).sort((a,b) => a.mid - b.mid);
+    setAnaProgress(88, 'Building chapter timestamps...', '');
+
+    chapterTimestamps = [];
+    for (let i = 0; i < numChapters; i++) {
+      const start = i === 0 ? 0 : detectedBreaks[i-1] ? detectedBreaks[i-1].end : 0;
+      const end   = detectedBreaks[i] ? detectedBreaks[i].start : audioDuration;
+      const name  = document.getElementById('chName' + i)?.value.trim() || `Chapter ${i+1}`;
+      chapterTimestamps.push({ index: i, name, startSec: Math.round(start), endSec: Math.round(end), durationSec: Math.round(end - start) });
+    }
+
+    setAnaProgress(95, 'Drawing waveform...', '');
+    drawWaveform(mono, sampleRate, detectedBreaks);
+    setAnaProgress(100, 'Done.', `${numChapters} chapters mapped.`);
+    renderAnaResults(numChapters, silentRegions.length, expectedBreaks);
+    setTimeout(() => document.getElementById('resultsSection').scrollIntoView({ behavior:'smooth', block:'start' }), 200);
+  } catch(err) {
+    anaShowError('Could not analyse this audio file. Make sure it is a valid audio format and try again. Error: ' + err.message);
+    console.error(err);
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Analyse audio';
+}
+
+function drawWaveform(mono, sampleRate, breaks) {
+  const wrap = document.getElementById('waveformWrap');
+  wrap.classList.add('visible');
+  const canvas = document.getElementById('waveform');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.offsetWidth, h = 80;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  ctx.fillRect(0, 0, w, h);
+  const step = Math.ceil(mono.length / w), mid = h / 2;
+  ctx.strokeStyle = 'rgba(127,196,251,0.5)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x = 0; x < w; x++) {
+    let max = 0;
+    for (let j = 0; j < step; j++) { const idx = x*step+j; if (idx < mono.length) max = Math.max(max, Math.abs(mono[idx])); }
+    const amp = max * mid * 0.9;
+    ctx.moveTo(x, mid - amp); ctx.lineTo(x, mid + amp);
+  }
+  ctx.stroke();
+  breaks.forEach(b => {
+    const xPos = (b.mid / audioDuration) * w;
+    ctx.strokeStyle = 'rgba(130,255,127,0.7)'; ctx.lineWidth = 2; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(xPos, 0); ctx.lineTo(xPos, h); ctx.stroke(); ctx.setLineDash([]);
+  });
+  ctx.fillStyle = 'rgba(234,243,248,0.2)';
+  ctx.font = '9px JetBrains Mono, monospace';
+  const intervals = Math.min(8, Math.floor(audioDuration / 60) + 1);
+  for (let i = 0; i <= intervals; i++) {
+    const t = (i / intervals) * audioDuration;
+    ctx.fillText(fmt(t), Math.min((t/audioDuration)*w + 2, w - 30), h - 4);
+  }
+}
+
+function renderAnaResults(numChapters, foundRegions, expectedBreaks) {
+  const warnBox = document.getElementById('warningBox');
+  if (foundRegions < expectedBreaks) {
+    warnBox.style.display = 'block';
+    warnBox.innerHTML = `<strong>Warning:</strong> Expected ${expectedBreaks} silence break(s) for ${numChapters} chapters, but only found ${foundRegions} region(s). Some chapters may have been merged. Try lowering the sensitivity setting or check that your SSML included the 2000ms break tags.`;
+  } else {
+    warnBox.style.display = 'none';
+  }
+  document.getElementById('resultsMeta').textContent = `${numChapters} chapters detected in ${fmt(audioDuration)} audio (${Math.round(audioDuration)}s total)`;
+  document.getElementById('chapterResultList').innerHTML = chapterTimestamps.map(ch => `
+    <div class="chapter-result">
+      <div class="cr-num">Ch ${ch.index + 1}</div>
+      <div>
+        <div class="cr-title">${ch.name}</div>
+        <div class="cr-title-sub">${fmt(ch.startSec)} to ${fmt(ch.endSec)}</div>
+      </div>
+      <div class="cr-time">
+        <div class="cr-time-range">${ch.startSec}s &rarr; ${ch.endSec}s</div>
+        <div class="cr-time-sec">start / end in seconds</div>
+      </div>
+      <div class="cr-dur">
+        <div class="cr-dur-val">${ch.durationSec}s</div>
+        <div class="cr-dur-label">duration</div>
+      </div>
+    </div>`).join('');
+  document.getElementById('summaryBar').innerHTML = `
+    <div class="summary-stat"><span class="summary-stat-label">Total duration</span><span class="summary-stat-value">${Math.round(audioDuration)}s</span></div>
+    <div class="summary-stat"><span class="summary-stat-label">Chapters</span><span class="summary-stat-value">${numChapters}</span></div>
+    <div class="summary-stat"><span class="summary-stat-label">Breaks found</span><span class="summary-stat-value">${foundRegions}</span></div>
+    <div class="summary-stat"><span class="summary-stat-label">Avg chapter</span><span class="summary-stat-value">${Math.round(audioDuration / numChapters)}s</span></div>`;
+  document.getElementById('resultsSection').classList.add('visible');
+}
+
+function copyResults() {
+  const lines = chapterTimestamps.map(ch =>
+    `Chapter ${ch.index+1}: ${ch.name}\n  Start: ${ch.startSec}s (${fmt(ch.startSec)})\n  End:   ${ch.endSec}s (${fmt(ch.endSec)})\n  Duration: ${ch.durationSec}s`
+  ).join('\n\n');
+  const full = `ZEHN CHAPTER TIMESTAMPS\nTotal audio: ${Math.round(audioDuration)}s (${fmt(audioDuration)})\n\n${lines}`;
+  navigator.clipboard.writeText(full).then(() => {
+    const btn = document.getElementById('copyResultsBtn');
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy timestamps`;
+    }, 2600);
+  });
+}
+
+function anaShowError(msg) { const el = document.getElementById('anaErrorMsg'); el.textContent = msg; el.classList.add('visible'); }
+function anaHideError()    { document.getElementById('anaErrorMsg').classList.remove('visible'); }
+
+
+/* ═══════════════════════════════════════
+   BOOK COVER TOOL
+═══════════════════════════════════════ */
+(function() {
+  const cvFileInput  = document.getElementById('cv-file-input');
+  const cvUploadZone = document.getElementById('cv-upload-zone');
+  const cvBookCover  = document.getElementById('cv-book-cover');
+  const cvArch       = document.getElementById('cv-arch');
+  const cvCanvas     = document.getElementById('cv-canvas');
+  const cvCtx        = cvCanvas.getContext('2d');
+  const cvProgFill   = document.getElementById('cv-progress-fill');
+  const cvCard       = document.getElementById('cv-card');
+
+  // Drag-and-drop
+  cvCard.addEventListener('dragover', e => { e.preventDefault(); cvCard.classList.add('cv-drag-over'); });
+  cvCard.addEventListener('dragleave', () => cvCard.classList.remove('cv-drag-over'));
+  cvCard.addEventListener('drop', e => {
+    e.preventDefault(); cvCard.classList.remove('cv-drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) cvProcessFile(file);
+  });
+  cvFileInput.addEventListener('change', e => { if (e.target.files[0]) cvProcessFile(e.target.files[0]); });
+
+  function cvProcessFile(file) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        cvBookCover.src = ev.target.result;
+        cvBookCover.style.display = 'block';
+        cvUploadZone.style.display = 'none';
+        document.getElementById('cv-book-title').style.display  = 'block';
+        document.getElementById('cv-book-author').style.display = 'block';
+        document.getElementById('cv-progress-wrap').style.display = 'flex';
+        document.getElementById('cv-actions').style.display     = 'flex';
+        const name = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+        document.getElementById('cv-book-title').textContent =
+          name.length > 2 ? cvTitleCase(name) : 'Your Book Title';
+        cvExtractDominant(img);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function cvExtractDominant(img) {
+    const SIZE = 80;
+    cvCanvas.width = SIZE; cvCanvas.height = SIZE;
+    cvCtx.drawImage(img, 0, 0, SIZE, SIZE);
+    const data = cvCtx.getImageData(0, 0, SIZE, SIZE).data;
+    const buckets = {};
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+      if (a < 128) continue;
+      const lum = 0.299*r + 0.587*g + 0.114*b;
+      if (lum > 235 || lum < 20) continue;
+      const qr = Math.round(r/32)*32, qg = Math.round(g/32)*32, qb = Math.round(b/32)*32;
+      const key = `${qr},${qg},${qb}`;
+      buckets[key] = (buckets[key] || 0) + 1;
+    }
+    let best = null, bestCount = 0;
+    for (const [key, count] of Object.entries(buckets)) {
+      if (count > bestCount) { bestCount = count; best = key; }
+    }
+    let r = 100, g = 90, b = 130;
+    if (best) [r, g, b] = best.split(',').map(Number);
+    cvApplyTheme(r, g, b);
+  }
+
+  function cvRgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r,g,b), min = Math.min(r,g,b);
+    let h, s, l = (max+min)/2;
+    if (max === min) { h = s = 0; }
+    else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = ((g-b)/d + (g<b?6:0)) / 6; break;
+        case g: h = ((b-r)/d + 2) / 6; break;
+        case b: h = ((r-g)/d + 4) / 6; break;
+      }
+    }
+    return [h*360, s*100, l*100];
+  }
+  function cvHslToRgb(h, s, l) {
+    h /= 360; s /= 100; l /= 100;
+    let r, g, b;
+    if (s === 0) { r = g = b = l; }
+    else {
+      const q = l < 0.5 ? l*(1+s) : l+s-l*s, p = 2*l - q;
+      r = cvHue2rgb(p,q,h+1/3); g = cvHue2rgb(p,q,h); b = cvHue2rgb(p,q,h-1/3);
+    }
+    return [Math.round(r*255), Math.round(g*255), Math.round(b*255)];
+  }
+  function cvHue2rgb(p,q,t) {
+    if (t<0) t+=1; if (t>1) t-=1;
+    if (t<1/6) return p+(q-p)*6*t;
+    if (t<1/2) return q;
+    if (t<2/3) return p+(q-p)*(2/3-t)*6;
+    return p;
+  }
+  function cvRgbHex(r,g,b) { return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+
+  function cvApplyTheme(r, g, b) {
+    const [h, s, l] = cvRgbToHsl(r, g, b);
+    const bgS = Math.min(s*0.75, 60), bgL = Math.max(Math.min(l*0.40, 30), 20);
+    const [br, bg, bb] = cvHslToRgb(h, bgS, bgL);
+    const bgColor = cvRgbHex(br, bg, bb);
+    const archS = Math.min(s*0.28, 22), archL = Math.min(l*0.18+78, 92);
+    const [ar, ag, ab] = cvHslToRgb(h, archS, archL);
+    const archColor = cvRgbHex(ar, ag, ab);
+
+    // Apply to the cover background div (not the whole body)
+    document.getElementById('coverBg').style.backgroundColor = bgColor;
+    cvArch.style.backgroundColor = archColor;
+    cvArch.style.boxShadow = `0 0 70px ${archColor}55`;
+    cvProgFill.style.backgroundColor = `${archColor}cc`;
+
+    cvSetSwatch('bg',   bgColor);
+    cvSetSwatch('arch', archColor);
+
+    const panel = document.getElementById('cv-palette-panel');
+    panel.style.display = 'flex';
+    panel.querySelectorAll('.cv-swatch-row').forEach((row, i) => {
+      row.style.opacity = '0'; row.style.transform = 'translateY(6px)';
+      setTimeout(() => {
+        row.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+        row.style.opacity = '1'; row.style.transform = 'translateY(0)';
+      }, 400 + i * 70);
+    });
+  }
+
+  function cvSetSwatch(key, hex) {
+    document.getElementById(`cv-dot-${key}`).style.backgroundColor = hex;
+    document.getElementById(`cv-${key}-hex`).textContent = hex.toUpperCase();
+  }
+
+  function cvTitleCase(str) {
+    const smalls = new Set(['a','an','the','and','but','or','for','nor','on','at','to','by','in','of']);
+    return str.split(' ').map((w,i) => (i===0 || !smalls.has(w.toLowerCase()))
+      ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+      : w.toLowerCase()).join(' ');
+  }
+
+  // Expose copyHex globally
+  window.cvCopyHex = function(spanId, row) {
+    const hex = document.getElementById(spanId).textContent.trim();
+    if (!hex || hex.includes('—')) return;
+    navigator.clipboard.writeText(hex).then(() => {
+      const btn = row.querySelector('.cv-copy-btn');
+      btn.textContent = 'Copied!'; btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = hex; ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      const btn = row.querySelector('.cv-copy-btn');
+      btn.textContent = 'Copied!'; btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+    });
+  };
+})();
+</script>
+</body>
+</html>
