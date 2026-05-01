@@ -1064,6 +1064,7 @@ async function generate() {
   // Arabic calibration: 6,806 characters = 12 min 45 sec of real TTS output
   // → 534 characters per minute
   const ARABIC_CHARS_PER_MIN = 534;
+  const ARABIC_MIN_WORDS = 1600; // hard minimum — script must never fall below this
   const isArabic = langCode === 'ar-SA';
 
   let sizeTarget, sizePerChapter, sizeUnit, maxTok;
@@ -1092,7 +1093,10 @@ Language: ${langLabel}
 Category: ${category}
 Tone: ${tone}
 Total target: ${sizeTarget} ${sizeUnit} across ${numChapters} chapters (MINIMUM ${sizePerChapter} ${sizeUnit} per chapter — this is a TTS audio script and must produce exactly ${duration} minutes of audio)
-${isArabic ? `IMPORTANT: "${sizeUnit}" means the total count of all letters, spaces, and punctuation combined in the Arabic text — the same as text.length in JavaScript. Each chapter's "content" value must be at least ${sizePerChapter} characters long. Write detailed, rich, flowing Arabic prose to reach this length.` : ''}
+${isArabic ? `CRITICAL ARABIC REQUIREMENTS:
+1. The TOTAL word count across ALL chapters combined must be at least ${ARABIC_MIN_WORDS} words. Count every Arabic word (space-separated tokens). Do not stop writing until you reach this minimum.
+2. "${sizeUnit}" also means the total count of all letters, spaces, and punctuation combined — the same as text.length in JavaScript. Each chapter's "content" value must be at least ${sizePerChapter} characters long.
+3. Write detailed, rich, flowing, elaborate Arabic prose. Expand every idea fully. Never truncate a chapter.` : ''}
 
 Return this exact JSON structure:
 {
@@ -1115,7 +1119,8 @@ Insights rules:
 Chapter rules:
 - Exactly ${numChapters} chapters
 - Each chapter MUST contain at least ${sizePerChapter} ${sizeUnit} — write more if needed, never less. This is critical for hitting the ${duration}-minute audio target.
-${isArabic ? `- ARABIC REQUIREMENT: count characters (حروف + مسافات + علامات) — each chapter needs at least ${sizePerChapter} of them. If a chapter is too short, keep writing until it reaches ${sizePerChapter}.` : ''}
+${isArabic ? `- ARABIC WORD MINIMUM: the combined word count of ALL chapters must reach at least ${ARABIC_MIN_WORDS} Arabic words. If you finish a chapter and the running total is still below ${ARABIC_MIN_WORDS} words, continue writing more content in that chapter.
+- ARABIC CHARACTER REQUIREMENT: count characters (حروف + مسافات + علامات) — each chapter needs at least ${sizePerChapter} of them. If a chapter is too short, keep writing until it reaches ${sizePerChapter}.` : ''}
 - Chapter 1 opens with a compelling hook
 - Each covers one distinct core idea
 - Last chapter closes with a clear actionable takeaway
@@ -1175,6 +1180,22 @@ ${isArabic ? `- ARABIC REQUIREMENT: count characters (حروف + مسافات + 
       title:   removeEmDashes(ch.title   || ''),
       content: removeEmDashes(ch.content || '')
     }));
+
+    // ── Arabic minimum word count enforcement ──
+    if (isArabic) {
+      const totalArabicWords = parsed.chapters.reduce((sum, ch) => {
+        return sum + (ch.content.trim().split(/\s+/).filter(w => w.length > 0).length);
+      }, 0);
+      if (totalArabicWords < ARABIC_MIN_WORDS) {
+        genShowError(
+          `Generated script is too short (${totalArabicWords.toLocaleString()} words). ` +
+          `Arabic scripts must be at least ${ARABIC_MIN_WORDS.toLocaleString()} words. ` +
+          `Please generate again — try switching to Sonnet or Opus for longer output.`
+        );
+        setLoading(false);
+        return;
+      }
+    }
 
     const fullScript = parsed.chapters.map((ch, i) =>
       `Chapter ${i+1}: ${ch.title}\n\n${ch.content}`
