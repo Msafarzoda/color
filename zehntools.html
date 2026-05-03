@@ -1067,6 +1067,9 @@ async function generate() {
   const ARABIC_MIN_WORDS = 1450; // hard minimum — script must never fall below this
   const isArabic = langCode === 'ar-SA';
 
+  const RUSSIAN_MIN_WORDS = 1500; // hard minimum — Russian script must never fall below this
+  const isRussian = langCode === 'ru-RU';
+
   let sizeTarget, sizePerChapter, sizeUnit, maxTok;
   if (isArabic) {
     const totalChars   = Math.round(ARABIC_CHARS_PER_MIN * duration);
@@ -1097,6 +1100,10 @@ ${isArabic ? `CRITICAL ARABIC REQUIREMENTS:
 1. The TOTAL word count across ALL chapters combined must be at least ${ARABIC_MIN_WORDS} words. Count every Arabic word (space-separated tokens). Do not stop writing until you reach this minimum.
 2. "${sizeUnit}" also means the total count of all letters, spaces, and punctuation combined — the same as text.length in JavaScript. Each chapter's "content" value must be at least ${sizePerChapter} characters long.
 3. Write detailed, rich, flowing, elaborate Arabic prose. Expand every idea fully. Never truncate a chapter.` : ''}
+${isRussian ? `CRITICAL RUSSIAN REQUIREMENTS:
+1. The TOTAL word count across ALL chapters combined must be at least ${RUSSIAN_MIN_WORDS} words. Count every Russian word (space-separated tokens). Do not stop writing until you reach this minimum.
+2. Each chapter's "content" value must contain at least ${sizePerChapter} words of rich, detailed Russian prose.
+3. Write elaborate, flowing, detailed Russian prose. Expand every idea fully. Never truncate a chapter early.` : ''}
 
 Return this exact JSON structure:
 {
@@ -1121,6 +1128,8 @@ Chapter rules:
 - Each chapter MUST contain at least ${sizePerChapter} ${sizeUnit} — write more if needed, never less. This is critical for hitting the ${duration}-minute audio target.
 ${isArabic ? `- ARABIC WORD MINIMUM: the combined word count of ALL chapters must reach at least ${ARABIC_MIN_WORDS} Arabic words. If you finish a chapter and the running total is still below ${ARABIC_MIN_WORDS} words, continue writing more content in that chapter.
 - ARABIC CHARACTER REQUIREMENT: count characters (حروف + مسافات + علامات) — each chapter needs at least ${sizePerChapter} of them. If a chapter is too short, keep writing until it reaches ${sizePerChapter}.` : ''}
+${isRussian ? `- RUSSIAN WORD MINIMUM: the combined word count of ALL chapters must reach at least ${RUSSIAN_MIN_WORDS} Russian words. If you finish a chapter and the running total is still below ${RUSSIAN_MIN_WORDS} words, continue writing more content in that chapter.
+- Each chapter must contain at least ${sizePerChapter} words of detailed prose. If a chapter is too short, keep writing until it reaches ${sizePerChapter} words.` : ''}
 - Chapter 1 opens with a compelling hook
 - Each covers one distinct core idea
 - Last chapter closes with a clear actionable takeaway
@@ -1190,6 +1199,22 @@ ${isArabic ? `- ARABIC WORD MINIMUM: the combined word count of ALL chapters mus
         genShowError(
           `Generated script is too short (${totalArabicWords.toLocaleString()} words). ` +
           `Arabic scripts must be at least ${ARABIC_MIN_WORDS.toLocaleString()} words. ` +
+          `Please generate again — try switching to Sonnet or Opus for longer output.`
+        );
+        setLoading(false);
+        return;
+      }
+    }
+
+    // ── Russian minimum word count enforcement ──
+    if (isRussian) {
+      const totalRussianWords = parsed.chapters.reduce((sum, ch) => {
+        return sum + (ch.content.trim().split(/\s+/).filter(w => w.length > 0).length);
+      }, 0);
+      if (totalRussianWords < RUSSIAN_MIN_WORDS) {
+        genShowError(
+          `Generated script is too short (${totalRussianWords.toLocaleString()} words). ` +
+          `Russian scripts must be at least ${RUSSIAN_MIN_WORDS.toLocaleString()} words. ` +
           `Please generate again — try switching to Sonnet or Opus for longer output.`
         );
         setLoading(false);
