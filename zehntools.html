@@ -37,6 +37,7 @@ header{padding:32px 0 28px;display:flex;align-items:center;justify-content:space
 .logo-mark.gen{background:var(--green)}
 .logo-mark.ana{background:var(--blue)}
 .logo-mark.cov{background:var(--amber)}
+.logo-mark.cgn{background:var(--purple)}
 .logo-text{font-weight:700;font-size:18px;letter-spacing:-0.02em}
 .logo-sub{font-size:12px;color:var(--text-mute);letter-spacing:0.06em;text-transform:uppercase;margin-top:1px}
 .header-badge{font-size:11px;padding:5px 12px;border-radius:99px;border:1px solid var(--line-2);color:var(--text-mute);letter-spacing:0.04em;transition:opacity 0.2s}
@@ -50,6 +51,7 @@ header{padding:32px 0 28px;display:flex;align-items:center;justify-content:space
 .tool-nav-btn.active.gen-active::after{background:var(--green)}
 .tool-nav-btn.active.ana-active::after{background:var(--blue)}
 .tool-nav-btn.active.cov-active::after{background:var(--amber)}
+.tool-nav-btn.active.cgn-active::after{background:var(--purple)}
 .tool-nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 
 /* ── SHARED CARD / FORM ── */
@@ -318,6 +320,80 @@ canvas#waveform{width:100%;height:80px;border-radius:var(--radius-sm);border:1px
 #tool-cover .cv-copy-btn{font-size:10px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:rgba(255,255,255,0.22);transition:color 0.15s;white-space:nowrap;user-select:none}
 #tool-cover .cv-swatch-row:hover .cv-copy-btn{color:rgba(255,255,255,0.55)}
 #tool-cover .cv-copy-btn.copied{color:rgba(120,220,160,0.85)!important}
+
+/* ═══════════════════════════════════
+   COVER GENERATOR STYLES
+═══════════════════════════════════ */
+.cgn-bg{position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 80% 0%,rgba(196,168,251,0.07) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 10% 100%,rgba(251,217,127,0.04) 0%,transparent 55%);pointer-events:none;z-index:0;transition:opacity 0.4s;opacity:0}
+.page-title h1 .em-cgn{font-family:'Lora',serif;font-style:italic;font-weight:500;color:var(--purple)}
+.cgn-api-section{background:rgba(196,168,251,0.04);border:1px solid rgba(196,168,251,0.18);border-radius:var(--radius);padding:18px;margin-bottom:20px;display:flex;gap:14px;align-items:flex-start}
+.cgn-api-icon{width:32px;height:32px;background:rgba(196,168,251,0.14);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.cgn-api-icon svg{width:15px;height:15px;stroke:var(--purple)}
+.cgn-api-info{flex:1}
+.cgn-api-info p{font-size:12px;color:var(--text-dim);margin-bottom:10px;line-height:1.5}
+.cgn-api-info strong{color:var(--purple);font-weight:600}
+.cgn-api-info a{color:var(--purple);text-decoration:none;border-bottom:1px dashed rgba(196,168,251,0.4)}
+.cgn-api-info a:hover{border-bottom-color:var(--purple)}
+.cgn-key-input-wrap{position:relative}
+.cgn-key-input-wrap input{background:rgba(255,255,255,0.05);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:10px 44px 10px 14px;font-size:13px;color:var(--text);font-family:monospace;outline:none;width:100%;transition:border-color 0.15s;letter-spacing:0.04em}
+.cgn-key-input-wrap input:focus{border-color:rgba(196,168,251,0.45)}
+.cgn-key-input-wrap input::placeholder{color:var(--text-mute);letter-spacing:0;font-family:'Plus Jakarta Sans',sans-serif}
+#tool-cover-gen .form-group input:focus,#tool-cover-gen .form-group select:focus,#tool-cover-gen .form-group textarea:focus{border-color:rgba(196,168,251,0.45);background:rgba(196,168,251,0.04)}
+#tool-cover-gen .form-group textarea{background:rgba(255,255,255,0.05);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:11px 14px;font-size:14px;color:var(--text);font-family:'Plus Jakarta Sans',system-ui,sans-serif;outline:none;transition:border-color 0.15s,background 0.15s;width:100%;min-height:90px;resize:vertical;line-height:1.5}
+#tool-cover-gen .form-group textarea::placeholder{color:var(--text-mute)}
+.cgn-prefill-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:rgba(196,168,251,0.05);border:1px solid rgba(196,168,251,0.16);border-radius:var(--radius-sm)}
+.cgn-prefill-row p{flex:1;font-size:12px;color:var(--text-dim);line-height:1.4;margin:0}
+.cgn-prefill-row strong{color:var(--purple)}
+.btn-cgn-prefill{display:inline-flex;align-items:center;gap:6px;background:rgba(196,168,251,0.12);color:var(--purple);border:1px solid rgba(196,168,251,0.25);border-radius:var(--radius-sm);padding:7px 14px;font-size:12px;font-weight:600;font-family:'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:background 0.15s;white-space:nowrap}
+.btn-cgn-prefill:hover{background:rgba(196,168,251,0.20)}
+.btn-cgn-prefill:disabled{opacity:0.4;cursor:not-allowed}
+.btn-cgn-generate{display:inline-flex;align-items:center;gap:8px;background:var(--purple);color:var(--ink);border:none;border-radius:var(--radius-sm);padding:13px 24px;font-size:14px;font-weight:700;font-family:'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:opacity 0.15s,transform 0.1s;letter-spacing:-0.01em}
+.btn-cgn-generate:hover{opacity:0.88}
+.btn-cgn-generate:active{transform:scale(0.97)}
+.btn-cgn-generate:disabled{opacity:0.35;cursor:not-allowed;transform:none}
+.btn-cgn-generate svg{width:16px;height:16px;flex-shrink:0}
+.cgn-ref-zone{border:2px dashed rgba(196,168,251,0.3);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s;position:relative}
+.cgn-ref-zone:hover,.cgn-ref-zone.drag-over{border-color:rgba(196,168,251,0.7);background:rgba(196,168,251,0.04)}
+.cgn-ref-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.cgn-ref-icon{width:36px;height:36px;background:rgba(196,168,251,0.14);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+.cgn-ref-icon svg{width:18px;height:18px;stroke:var(--purple)}
+.cgn-ref-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.cgn-ref-sub{font-size:12px;color:var(--text-mute)}
+.cgn-ref-thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.cgn-ref-thumb{position:relative;width:64px;height:90px;border-radius:6px;overflow:hidden;border:1px solid var(--line-2)}
+.cgn-ref-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.cgn-ref-thumb-remove{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;padding:0}
+.cgn-ref-thumb-remove:hover{background:rgba(255,80,80,0.9)}
+.cgn-loading-orb{border-color:rgba(196,168,251,0.12);border-top-color:var(--purple)}
+.cgn-loading-orb::after{border-color:rgba(196,168,251,0.06);border-bottom-color:rgba(196,168,251,0.28)!important}
+.cgn-loading-progress-fill{background:var(--purple)!important}
+.cgn-cover-preview{display:flex;justify-content:center;align-items:center;background:rgba(255,255,255,0.02);border-radius:var(--radius-lg);padding:32px;border:1px solid var(--line)}
+.cgn-cover-img{max-width:100%;max-height:560px;border-radius:6px;box-shadow:0 24px 60px rgba(0,0,0,0.50),0 8px 20px rgba(0,0,0,0.30);display:block;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1)}
+.cgn-cover-img:hover{transform:scale(1.02) translateY(-3px)}
+.cgn-cover-info{margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.cgn-cover-meta{font-size:12px;color:var(--text-mute);line-height:1.5}
+.cgn-cover-meta strong{color:var(--text-dim);font-weight:600}
+.cgn-cover-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn-cgn-action{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:9px 16px;font-size:13px;font-weight:500;color:var(--text-dim);font-family:'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:background 0.15s,color 0.15s,border-color 0.15s}
+.btn-cgn-action:hover{background:rgba(255,255,255,0.09);color:var(--text)}
+.btn-cgn-action.copied{color:var(--purple);border-color:rgba(196,168,251,0.35)}
+.btn-cgn-action svg{width:14px;height:14px}
+.cgn-prompt-preview{margin-top:18px;background:rgba(0,0,0,0.20);border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-dim);line-height:1.55;max-height:180px;overflow-y:auto;white-space:pre-wrap;display:none}
+.cgn-prompt-preview.visible{display:block}
+.cgn-prompt-preview::-webkit-scrollbar{width:4px}
+.cgn-prompt-preview::-webkit-scrollbar-track{background:transparent}
+.cgn-prompt-preview::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:99px}
+.cgn-prompt-toggle{font-size:11px;color:var(--text-mute);background:none;border:none;cursor:pointer;padding:6px 0;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:0.04em;text-transform:uppercase;font-weight:600;transition:color 0.15s;margin-top:6px}
+.cgn-prompt-toggle:hover{color:var(--purple)}
+.cgn-palette-row{display:none;align-items:center;gap:14px;margin:18px 0 4px;flex-wrap:wrap}
+.cgn-palette-row.visible{display:flex}
+.cgn-palette-label{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mute);white-space:nowrap;flex-shrink:0}
+.cgn-palette-swatches{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.cgn-palette-swatch{width:30px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,0.14);cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;flex-shrink:0;position:relative}
+.cgn-palette-swatch:hover{transform:scale(1.18);box-shadow:0 4px 14px rgba(0,0,0,0.35)}
+.cgn-palette-swatch:active{transform:scale(1.05)}
+.cgn-palette-applied{font-size:11px;color:var(--text-mute);font-style:italic;white-space:nowrap}
+.cgn-palette-applied strong{color:var(--purple);font-style:normal}
 </style>
 </head>
 <body>
@@ -326,6 +402,7 @@ canvas#waveform{width:100%;height:80px;border-radius:var(--radius-sm);border:1px
 <div class="gen-bg" id="genBg"></div>
 <div class="ana-bg" id="anaBg"></div>
 <div class="cover-bg" id="coverBg"></div>
+<div class="cgn-bg" id="cgnBg"></div>
 
 <div class="page-wrap">
 
@@ -354,6 +431,10 @@ canvas#waveform{width:100%;height:80px;border-radius:var(--radius-sm);border:1px
     <button class="tool-nav-btn" id="nav-cover" onclick="showTool('cover')">
       <span class="tool-nav-dot" style="background:var(--amber)"></span>
       Book Cover
+    </button>
+    <button class="tool-nav-btn" id="nav-covergen" onclick="showTool('covergen')">
+      <span class="tool-nav-dot" style="background:var(--purple)"></span>
+      Cover Generator
     </button>
   </div>
 
@@ -776,6 +857,124 @@ canvas#waveform{width:100%;height:80px;border-radius:var(--radius-sm);border:1px
 
   </div><!-- /tool-cover -->
 
+
+  <!-- ════════════════════════════════
+       TOOL 4 — COVER GENERATOR (Gemini / Nano Banana)
+  ════════════════════════════════ -->
+  <div id="tool-cover-gen" style="display:none">
+
+    <div class="page-title">
+      <h1>Generate a<br><em class="em-cgn">book cover</em></h1>
+      <p>Powered by Nano Banana 2 and Nano Banana Pro (Google AI Studio). Generates bold flat-vector book covers in the Zehn house style — max 3 colors, massive typography, single iconic illustration. Drop reference covers in the box below for best results. Bring your own paid Google AI Studio API key — the free tier mangles Arabic.</p>
+    </div>
+
+
+
+    <div class="card">
+      <div class="card-title">Book details</div>
+
+      <div class="cgn-prefill-row">
+        <p>Already generated a script this session? <strong>Pull the title and author</strong> from the most recent Script Generator run to keep them in sync.</p>
+        <button class="btn-cgn-prefill" id="cgnPrefillBtn" onclick="cgnPrefillFromScript()" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M21 12a9 9 0 1 1-9-9c2.6 0 5 1 6.7 2.7L21 8"/><path d="M21 3v5h-5"/></svg>
+          Use latest book
+        </button>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="cgnTitle">Book title</label>
+          <input type="text" id="cgnTitle" placeholder="e.g. Built to Last" oninput="cgnShowPrePrompt()" />
+        </div>
+        <div class="form-group">
+          <label for="cgnSubtitle">Subtitle / tagline</label>
+          <input type="text" id="cgnSubtitle" placeholder="e.g. Successful habits of visionary companies" oninput="cgnShowPrePrompt()" />
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="cgnAuthor">Author (optional, usually omitted)</label>
+          <input type="text" id="cgnAuthor" placeholder="Leave blank to keep cover clean" oninput="cgnShowPrePrompt()" />
+        </div>
+        <div class="form-group">
+          <label for="cgnLanguage">Title language</label>
+          <select id="cgnLanguage" onchange="cgnShowPrePrompt()">
+            <option value="en">English</option>
+            <option value="ar">Arabic</option>
+            <option value="ru">Russian</option>
+            <option value="tg">Tajik</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="cgnPalette">Color palette</label>
+          <select id="cgnPalette" onchange="cgnShowPrePrompt()">
+            <option value="auto">Auto — pick to match the theme</option>
+            <option value="cream-purple-orange">Cream + Purple + Orange (Built to Last)</option>
+            <option value="darkgreen-yellow">Dark Green + Mustard Yellow (Best Job Ever)</option>
+            <option value="orange-yellow-blue">Orange + Yellow + Blue (Anything You Want)</option>
+            <option value="yellow-red-blue">Yellow + Red + Blue (Never Lead Alone)</option>
+            <option value="green-blue-yellow">Green + Navy + Yellow (Noble Power)</option>
+            <option value="pink-blue-cream">Pink + Blue + Cream (One Million Followers)</option>
+            <option value="navy-green-lime">Navy + Green + Lime (100M Offers)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cgnStyle">Illustration style</label>
+          <select id="cgnStyle" onchange="cgnShowPrePrompt()">
+            <option value="flat-vector">Flat vector — Zehn house style</option>
+            <option value="bold-geometric">Bold geometric shapes</option>
+            <option value="minimal-typographic">Minimal — typography led</option>
+            <option value="hand-drawn">Loose hand-drawn vector</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div class="form-group">
+          <label for="cgnConcept">Theme description (what the book is about)</label>
+          <textarea id="cgnConcept" placeholder="e.g. Lessons on building enduring companies. The illustration should feature a hand holding a rocket launching upward, with sparkles and decorative bubbles around it." oninput="cgnShowPrePrompt()"></textarea>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <label style="font-size:12px;font-weight:600;color:var(--text-dim);letter-spacing:0.03em;display:block;margin-bottom:8px;">Reference images (optional, up to 4)</label>
+        <div class="cgn-ref-zone" id="cgnRefZone">
+          <input type="file" id="cgnRefFile" accept="image/*" multiple onchange="cgnHandleRefFiles(event)" />
+          <div class="cgn-ref-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </div>
+          <div class="cgn-ref-title">Drop reference covers here</div>
+          <div class="cgn-ref-sub">Drop Zehn-style covers here — the model will match the flat color style and bold typography. PNG / JPG, up to 4 images.</div>
+          <div class="cgn-ref-thumbs" id="cgnRefThumbs"></div>
+        </div>
+      </div>
+
+      <!-- Prompt — always visible once title is filled -->
+      <div id="cgnPrePromptWrap" style="display:none;margin-top:4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-mute);">Prompt — ready to paste into AI Studio</span>
+          <button id="cgnCopyPromptBtn" onclick="cgnCopyPrePrompt()" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:7px 16px;background:var(--purple);border:none;border-radius:var(--radius-sm);color:var(--ink);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;letter-spacing:-0.01em;transition:opacity 0.15s;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy prompt
+          </button>
+        </div>
+        <div id="cgnPrePromptText" style="background:rgba(0,0,0,0.22);border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text-dim);line-height:1.6;max-height:260px;overflow-y:auto;white-space:pre-wrap;"></div>
+        <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+          <a href="https://aistudio.google.com/" target="_blank" rel="noopener" style="font-size:12px;color:var(--purple);text-decoration:none;font-weight:600;opacity:0.8;">Open AI Studio ↗</a>
+          <button onclick="cgnReset()" style="font-size:12px;padding:6px 14px;background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-sm);color:var(--text-mute);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;" onmouseover="this.style.borderColor='rgba(255,255,255,0.25)';this.style.color='rgba(255,255,255,0.7)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color=''">↺ Reset</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tool-cover-gen -->
+
+
   <footer>
     <p>Internal use only. Zehn team.</p>
     <div class="footer-logo">Zehn<span> +</span></div>
@@ -791,27 +990,39 @@ function showTool(name) {
   const isGen = name === 'generator';
   const isAna = name === 'analyser';
   const isCov = name === 'cover';
+  const isCgn = name === 'covergen';
 
   document.getElementById('tool-generator').style.display = isGen ? '' : 'none';
   document.getElementById('tool-analyser').style.display  = isAna ? '' : 'none';
   document.getElementById('tool-cover').style.display     = isCov ? '' : 'none';
+  document.getElementById('tool-cover-gen').style.display = isCgn ? '' : 'none';
 
   const navGen = document.getElementById('nav-generator');
   const navAna = document.getElementById('nav-analyser');
   const navCov = document.getElementById('nav-cover');
+  const navCgn = document.getElementById('nav-covergen');
   navGen.className = 'tool-nav-btn' + (isGen ? ' active gen-active' : '');
   navAna.className = 'tool-nav-btn' + (isAna ? ' active ana-active' : '');
   navCov.className = 'tool-nav-btn' + (isCov ? ' active cov-active' : '');
+  navCgn.className = 'tool-nav-btn' + (isCgn ? ' active cgn-active' : '');
 
   // badge & logo colour
-  document.getElementById('headerBadge').textContent = isGen ? 'Script Generator v1.3' : isAna ? 'Audio Analyser v1.0' : 'Book Cover v1.0';
+  document.getElementById('headerBadge').textContent =
+    isGen ? 'Script Generator v1.3' :
+    isAna ? 'Audio Analyser v1.0' :
+    isCov ? 'Book Cover v1.7' :
+            'Cover Generator v1.7';
   const lm = document.getElementById('logoMark');
-  lm.className = 'logo-mark ' + (isGen ? 'gen' : isAna ? 'ana' : 'cov');
+  lm.className = 'logo-mark ' + (isGen ? 'gen' : isAna ? 'ana' : isCov ? 'cov' : 'cgn');
 
   // backgrounds
   document.getElementById('genBg').style.opacity   = isGen ? '1' : '0';
   document.getElementById('anaBg').style.opacity   = isAna ? '1' : '0';
   document.getElementById('coverBg').style.opacity = isCov ? '1' : '0';
+  document.getElementById('cgnBg').style.opacity   = isCgn ? '1' : '0';
+
+  // sync prefill availability when entering cover generator
+  if (isCgn && typeof cgnSyncPrefillButton === 'function') cgnSyncPrefillButton();
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1767,6 +1978,238 @@ function anaHideError()    { document.getElementById('anaErrorMsg').classList.re
     });
   };
 })();
+
+
+/* ═══════════════════════════════════════
+   COVER GENERATOR (Google AI Studio / Nano Banana)
+═══════════════════════════════════════ */
+let cgnRefImages = [];       // [{ name, mimeType, base64 }]
+
+const CGN_PALETTE_DESCRIPTIONS = {
+  'auto':                'Pick a fitting palette of 3-4 bold flat colors that match the theme.',
+  'cream-purple-orange': 'Soft cream / pale-mint background (#EAF1D9), vibrant violet-purple (#7E2BE0) for the title and main illustration, warm orange (#FFA84A) accent shapes, plus a small amount of light-green decorative dots.',
+  'darkgreen-yellow':    'Deep forest green background (#27392E) with mustard yellow (#F4C44E) for the title and warm cream (#F2EBD8) accents.',
+  'orange-yellow-blue':  'Bright orange / yellow background (#F0A82A → #FAD05A), dark navy/black main illustration (#2A2A2A) and electric blue (#4F86F7) light beams or accent shapes.',
+  'yellow-red-blue':     'Yellow upper half (#F5C842), deep red lower band (#D13B2E), royal blue (#1E3FB7) accent shapes and white objects.',
+  'green-blue-yellow':   'Bright kelly green background (#1AAE5A), navy blue (#13265E) main illustration, mustard yellow (#F4C842) accents.',
+  'pink-blue-cream':     'Soft pink background (#F5B6C4), royal blue (#2842D4) main illustration, cream/peach (#F8E9DC) typography.',
+  'navy-green-lime':     'Deep navy / midnight purple background (#1B1043), bright green money-graphic shapes (#1FAE5A) and acid-lime (#C8FF40) typography.'
+};
+
+const CGN_STYLE_DESCRIPTIONS = {
+  'flat-vector':        'Flat cartoon editorial illustration — professional studio quality. STRICT RULES: (1) CARTOON ART ONLY — objects, hands, figures must be simplified and cartoon-like, NOT photorealistic. Think chunky editorial art: big blocky hands, simple faces, stylized objects. Zero realistic anatomy or photographic detail. (2) EXACTLY 3 flat solid colors: background, primary illustration color, accent color. Absolute zero gradients, shadows, transparency, shading, texture, or glow. Pure solid fills only. (3) One dominant cartoon illustration fills 60-75% of the cover. It MUST bleed off at least one edge — cropped and oversized is the rule. NEVER float it centered with whitespace around it. (4) All shapes are large, chunky, bold — thick simplified forms, zero fine detail, zero intricate linework. (5) NO scattered decorative accents near the edges. Any secondary element must be thematically meaningful — max 2. (6) Title text may be layered ON TOP of the illustration in a contrasting accent color.',
+  'bold-geometric':     'Bold geometric flat illustration. Massive strong silhouettes with maximum contrast — shapes are simple polygons, circles, or rectangles scaled up to fill the frame and bleed off the edges. Exactly 3 solid flat colors, zero gradients, zero shading, zero 3D. The illustration dominates 65-80% of the cover. Title sits in whatever remaining space is strongest — top, bottom, or directly overlaid. Secondary elements must be bold and thematic, not decorative.',
+  'minimal-typographic':'Minimal typography-led design. The title is the #1 visual — oversized, 45-55% of cover height, ultra-bold weight 800-900 sans-serif. One small but boldly graphic illustration element (an icon, a simple object) placed to interact with the text, not float independently. Generous breathing room. Exactly 2-3 flat solid colors. No gradients, no shadows. The illustration should feel like punctuation to the title, not compete with it.',
+  'hand-drawn':         'Loose hand-drawn vector style: slightly imperfect outlines, rounded corners, warm and approachable tone. Still exactly 3 flat solid colors only — no gradients, no shading. Every shape looks drawn with a thick marker. The illustration is large (60-70% of cover) and bled off at least one edge. Title is bold, heavy weight, placed clearly against the background color for contrast.'
+};
+
+const CGN_LANG_LABELS = {
+  'en': 'English',
+  'ar': 'Arabic',
+  'ru': 'Russian',
+  'tg': 'Tajik'
+};
+
+window.addEventListener('DOMContentLoaded', () => {
+  // Live-update prefill button when a script is generated
+  const titleField = document.getElementById('cgnTitle');
+  if (titleField) titleField.addEventListener('input', cgnSyncPrefillButton);
+});
+
+
+function cgnSyncPrefillButton() {
+  const btn = document.getElementById('cgnPrefillBtn');
+  if (!btn) return;
+  const has = !!(typeof currentData !== 'undefined' && currentData && currentData.title);
+  btn.disabled = !has;
+}
+
+function cgnPrefillFromScript() {
+  if (typeof currentData === 'undefined' || !currentData || !currentData.title) return;
+  // Use translatedTitle so the cover AI renders the already-translated text exactly,
+  // instead of re-translating (and potentially mangling) it itself.
+  const titleToUse = currentData.translatedTitle || currentData.title || '';
+  document.getElementById('cgnTitle').value    = titleToUse;
+  document.getElementById('cgnSubtitle').value = currentData.shortDesc ? currentData.shortDesc.slice(0, 90) : '';
+  document.getElementById('cgnAuthor').value   = '';
+  // Map language codes from script generator (e.g. 'en-US') to cover generator codes
+  const langMap = { 'en-US':'en','en-GB':'en','ar-SA':'ar','ru-RU':'ru','tg-TJ':'tg' };
+  const cgnLang = langMap[currentData.langCode] || 'en';
+  document.getElementById('cgnLanguage').value = cgnLang;
+  // Auto-fill concept from longDesc / shortDesc if empty
+  const concept = document.getElementById('cgnConcept');
+  if (!concept.value.trim()) {
+    concept.value = currentData.longDesc || currentData.shortDesc || '';
+  }
+  const btn = document.getElementById('cgnPrefillBtn');
+  const orig = btn.innerHTML;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg> Filled`;
+  setTimeout(() => { btn.innerHTML = orig; }, 1800);
+
+  // Show prompt preview so it can be copied before generating
+  cgnShowPrePrompt();
+}
+
+function cgnShowPrePrompt() {
+  const title    = document.getElementById('cgnTitle').value.trim();
+  const subtitle = document.getElementById('cgnSubtitle').value.trim();
+  const author   = document.getElementById('cgnAuthor').value.trim();
+  const language = document.getElementById('cgnLanguage').value;
+  const palette  = document.getElementById('cgnPalette').value;
+  const style    = document.getElementById('cgnStyle').value;
+  const concept  = document.getElementById('cgnConcept').value.trim();
+  if (!title) { document.getElementById('cgnPrePromptWrap').style.display = 'none'; return; }
+  const built = cgnBuildPrompt({ title, subtitle, author, language, palette, style, concept });
+  document.getElementById('cgnPrePromptText').textContent = built;
+  document.getElementById('cgnPrePromptWrap').style.display = 'block';
+  document.getElementById('cgnCopyPromptBtn').textContent = 'Copy';
+}
+
+function cgnHidePrePrompt() {
+  document.getElementById('cgnPrePromptWrap').style.display = 'none';
+}
+
+function cgnCopyPrePrompt() {
+  const text = document.getElementById('cgnPrePromptText').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('cgnCopyPromptBtn');
+    btn.textContent = '✓ Copied';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn = document.getElementById('cgnCopyPromptBtn');
+    btn.textContent = '✓ Copied';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+  });
+}
+
+// ── Reference image handling ──
+(function setupCgnRefDrop() {
+  const zone = document.getElementById('cgnRefZone');
+  if (!zone) return;
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    cgnAddRefFiles(files);
+  });
+})();
+
+function cgnHandleRefFiles(e) {
+  const files = Array.from(e.target.files || []);
+  cgnAddRefFiles(files);
+  e.target.value = ''; // allow re-selecting the same file
+}
+
+function cgnAddRefFiles(files) {
+  const slotsLeft = 4 - cgnRefImages.length;
+  files.slice(0, slotsLeft).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      // Compress reference images to max 512px — enough for style transfer, much cheaper in API tokens
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 512;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else       { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const mimeType = 'image/jpeg';
+        const dataUrl  = canvas.toDataURL(mimeType, 0.75);
+        const base64   = dataUrl.split(',')[1];
+        cgnRefImages.push({ name: file.name, mimeType, base64, dataUrl });
+        cgnRenderRefThumbs();
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function cgnRenderRefThumbs() {
+  const wrap = document.getElementById('cgnRefThumbs');
+  wrap.innerHTML = cgnRefImages.map((img, i) => `
+    <div class="cgn-ref-thumb">
+      <img src="${img.dataUrl}" alt="${escapeHtml(img.name)}" />
+      <button class="cgn-ref-thumb-remove" onclick="cgnRemoveRef(${i})" title="Remove">&times;</button>
+    </div>
+  `).join('');
+}
+
+function cgnRemoveRef(i) {
+  cgnRefImages.splice(i, 1);
+  cgnRenderRefThumbs();
+}
+
+// ── Build the prompt ──
+function cgnBuildPrompt(opts) {
+  const { title, subtitle, author, language, palette, style, concept } = opts;
+  const langLabel   = CGN_LANG_LABELS[language] || 'English';
+  const paletteDesc = CGN_PALETTE_DESCRIPTIONS[palette] || CGN_PALETTE_DESCRIPTIONS['auto'];
+  const styleDesc   = CGN_STYLE_DESCRIPTIONS[style]    || CGN_STYLE_DESCRIPTIONS['flat-vector'];
+
+  const arabicNote = language === 'ar'
+    ? `\nARABIC: Render "${title}" in correct, connected Arabic script (RTL). Use a modern bold Arabic sans-serif (Tajawal/Boutros style). No fragmented or mirrored letters.`
+    : '';
+
+  return `Non-fiction book cover — editorial cartoon illustration style. Bold, graphic, striking at thumbnail size. Think Blinkist/Shortform covers or editorial design studios: flat cartoon art, simplified chunky forms, NOT photorealistic.
+
+TITLE (render exactly): "${title}"
+${subtitle ? `SUBTITLE (smaller, exact): "${subtitle}"` : 'NO SUBTITLE.'}
+${author   ? `AUTHOR (small): "${author}"` : 'NO AUTHOR NAME.'}
+LANGUAGE: ${langLabel}${arabicNote}
+
+STYLE: ${styleDesc}
+
+PALETTE (use ONLY these colors, no others): ${paletteDesc}
+RULE: Exactly 3 solid flat colors max. Zero gradients, shadows, transparency, or texture.
+
+THEME: ${concept || "One bold cartoon illustration that is a direct visual metaphor for the book's core idea."}
+
+ILLUSTRATION RULES (critical — follow every rule):
+- CARTOON/EDITORIAL ART ONLY — every object, hand, figure, or character must look like a flat cartoon illustration. Simplified, chunky, slightly playful. NOT photorealistic, NOT a 3D render, NOT a stock photo style.
+- NO photorealism: no realistic skin texture, no photographic lighting, no detailed shading, no lifelike anatomy. Hands are big and blocky. Faces are simple. Objects are recognizable but stylized.
+- One dominant illustration fills 60-75% of the cover — a hand, a figure, an object, or a symbolic scene drawn in cartoon style
+- It MUST bleed off at least one edge of the frame — cropped and oversized is right. Floating centered is wrong.
+- Shapes are large, chunky, bold — thick simplified forms. Zero fine detail, zero scattered decorative accents.
+- Any secondary element (max 2) must be directly thematic, not decorative filler
+- The illustration can sit behind or interact with the title text
+
+TYPOGRAPHY RULES (critical — follow exactly):
+- Title: ultra-bold sans-serif, weight 800-900, 25-40% of cover height
+- Placement: (a) top zone above the illustration, OR (b) bottom zone below it, OR (c) layered directly on top of the illustration in a strongly contrasting color — all three are valid
+- Subtitle: roughly 1/3 of title size — place it in the zone opposite the title, or on a solid contrasting color band/stripe
+- Text must be immediately legible at thumbnail size — max contrast
+
+OUTPUT: Portrait 2:3, full bleed to all edges, no 3D mockup, no spine, no watermarks, no barcodes, no drop shadows. Strictly flat cartoon illustration — zero photorealism.${cgnRefImages.length ? ' Absorb the reference images: match their cartoon illustration style, flat color discipline, oversized object scale, edge-bleeding cropping, and bold typography exactly.' : ''}`;
+}
+
+// ── Reset ──
+function cgnReset() {
+  document.getElementById('cgnTitle').value    = '';
+  document.getElementById('cgnSubtitle').value = '';
+  document.getElementById('cgnAuthor').value   = '';
+  document.getElementById('cgnConcept').value  = '';
+  document.getElementById('cgnLanguage').value = 'en';
+  document.getElementById('cgnPalette').value  = 'auto';
+  document.getElementById('cgnStyle').value    = 'flat-vector';
+  cgnRefImages = [];
+  document.getElementById('cgnRefThumbs').innerHTML = '';
+  document.getElementById('cgnPrePromptWrap').style.display = 'none';
+}
 </script>
 </body>
 </html>
