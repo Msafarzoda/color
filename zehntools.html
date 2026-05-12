@@ -608,6 +608,19 @@ canvas#waveform{width:100%;height:80px;border-radius:var(--radius-sm);border:1px
           <div class="meta-field">
             <div class="meta-field-header">
               <div>
+                <div class="meta-label">Cover tagline</div>
+                <div class="meta-where">Short punchy subtitle used on the book cover</div>
+              </div>
+            </div>
+            <div class="meta-content" id="coverTaglineContent">
+              <button class="meta-copy-btn" id="coverTaglineCopyBtn" onclick="copyMeta('coverTaglineText','coverTaglineCopyBtn')">Copy</button>
+              <div id="coverTaglineText" style="padding-right:48px;"></div>
+            </div>
+            <div class="char-counter" id="coverTaglineCounter"></div>
+          </div>
+          <div class="meta-field">
+            <div class="meta-field-header">
+              <div>
                 <div class="meta-label">Short description</div>
                 <div class="meta-where">Shown under the book title on home and explore pages</div>
               </div>
@@ -907,14 +920,28 @@ canvas#waveform{width:100%;height:80px;border-radius:var(--radius-sm);border:1px
         <div class="form-group">
           <label for="cgnPalette">Color palette</label>
           <select id="cgnPalette" onchange="cgnShowPrePrompt()">
-            <option value="auto">Auto — pick to match the theme</option>
-            <option value="cream-purple-orange">Cream + Purple + Orange (Built to Last)</option>
-            <option value="darkgreen-yellow">Dark Green + Mustard Yellow (Best Job Ever)</option>
-            <option value="orange-yellow-blue">Orange + Yellow + Blue (Anything You Want)</option>
-            <option value="yellow-red-blue">Yellow + Red + Blue (Never Lead Alone)</option>
-            <option value="green-blue-yellow">Green + Navy + Yellow (Noble Power)</option>
-            <option value="pink-blue-cream">Pink + Blue + Cream (One Million Followers)</option>
-            <option value="navy-green-lime">Navy + Green + Lime (100M Offers)</option>
+            <option value="auto">Auto — AI picks colors to match the book</option>
+            <optgroup label="── Existing Zehn Palettes ──">
+              <option value="cream-purple-orange">Cream + Purple + Orange</option>
+              <option value="darkgreen-yellow">Dark Green + Mustard Yellow</option>
+              <option value="orange-yellow-blue">Orange + Yellow + Electric Blue</option>
+              <option value="yellow-red-blue">Yellow + Red + Royal Blue</option>
+              <option value="green-blue-yellow">Kelly Green + Navy + Yellow</option>
+              <option value="pink-blue-cream">Pink + Royal Blue + Cream</option>
+              <option value="navy-green-lime">Midnight Navy + Green + Lime</option>
+            </optgroup>
+            <optgroup label="── New Palettes ──">
+              <option value="red-black-white">Red + Black + White — dramatic, sharp</option>
+              <option value="teal-coral-cream">Deep Teal + Coral + Ivory — warm, confident</option>
+              <option value="purple-gold-black">Deep Purple + Gold + Black — luxurious</option>
+              <option value="sky-rust-white">Sky Blue + Rust + White — fresh, energetic</option>
+              <option value="midnight-amber-cream">Midnight Navy + Amber + Cream — rich, serious</option>
+              <option value="sage-terracotta-ivory">Sage + Terracotta + Ivory — earthy, human</option>
+              <option value="cobalt-yellow-white">Cobalt Blue + Sunshine Yellow + White — bold</option>
+              <option value="black-mint-white">Black + Electric Mint + White — modern, no-fluff</option>
+              <option value="charcoal-turquoise-sand">Charcoal + Turquoise + Sand — sophisticated</option>
+              <option value="crimson-cream-forest">Crimson + Cream + Forest Green — grounded</option>
+            </optgroup>
           </select>
         </div>
         <div class="form-group">
@@ -924,6 +951,8 @@ canvas#waveform{width:100%;height:80px;border-radius:var(--radius-sm);border:1px
             <option value="bold-geometric">Bold geometric shapes</option>
             <option value="minimal-typographic">Minimal — typography led</option>
             <option value="hand-drawn">Loose hand-drawn vector</option>
+            <option value="retro-poster">Retro constructivist poster</option>
+            <option value="split-composition">Bold split composition</option>
           </select>
         </div>
       </div>
@@ -1253,7 +1282,7 @@ function renderSSMLHighlighted(ssml) {
 
 function renderOutput(data) {
   currentData = data;
-  const { title, author, langCode, category, tone, duration, ssml, translatedTitle, shortDesc, longDesc, insights, chapters } = data;
+  const { title, author, langCode, category, tone, duration, ssml, translatedTitle, coverTagline, shortDesc, longDesc, insights, chapters } = data;
   const langLabel = (LANG_MAP[langCode] || {}).label || langCode;
   const isTranslated = translatedTitle && translatedTitle !== title;
 
@@ -1284,6 +1313,14 @@ function renderOutput(data) {
   document.getElementById('ssmlQualityText').innerHTML = hasEmDash
     ? 'Em dashes detected and cleaned automatically.'
     : `<strong>No em dashes detected.</strong> Ready to upload.`;
+
+  const ctEl = document.getElementById('coverTaglineText');
+  if (ctEl) {
+    ctEl.textContent = coverTagline || '';
+    const ctc = (coverTagline || '').length;
+    const ctCounter = document.getElementById('coverTaglineCounter');
+    if (ctCounter) { ctCounter.textContent = `${ctc} / 45 characters`; ctCounter.className = 'char-counter ' + charCounterClass(ctc, 45); }
+  }
 
   document.getElementById('shortDescText').textContent = shortDesc;
   const sc = shortDesc.length;
@@ -1410,8 +1447,9 @@ ${isRussian ? `CRITICAL RUSSIAN REQUIREMENTS:
 Return this exact JSON structure:
 {
   "translatedTitle": "The book title translated into ${langLabel}. If the language is English, return the original title as-is.",
-  "shortDesc": "max 110 characters. Punchy. Shown under book title on home and explore pages. No em dashes.",
-  "longDesc": "max 370 characters. Shown on book details page. Context, promise, intrigue. Tone: ${tone}. No em dashes.",
+  "coverTagline": "HARD LIMIT: 45 characters maximum — count every letter and space. A short punchy cover subtitle: 4-7 words, no punctuation at end, no em dashes. Think book spine or movie poster. If your draft exceeds 45 characters, shorten it before returning.",
+  "shortDesc": "HARD LIMIT: 110 characters maximum — count every letter and space before returning. Punchy. Shown under book title on home and explore pages. No em dashes. If your draft exceeds 110 characters, shorten it.",
+  "longDesc": "HARD LIMIT: 370 characters maximum — count every letter and space before returning. Shown on book details page. Context, promise, intrigue. Tone: ${tone}. No em dashes. If your draft exceeds 370 characters, shorten it.",
   "insights": ["sentence","sentence","sentence","sentence","sentence"],
   "chapters": [
     { "title": "3-6 word chapter title in ${langLabel}", "content": "MINIMUM ${sizePerChapter} ${sizeUnit} of spoken audio script — count every letter and space. Do NOT stop early. Write until you reach ${sizePerChapter} ${sizeUnit}." }
@@ -1483,9 +1521,18 @@ ${isRussian ? `- RUSSIAN WORD MINIMUM: the combined word count of ALL chapters m
       setLoading(false); return;
     }
 
+    // Hard-truncate a string to max chars at a word boundary
+    function hardTrunc(str, max) {
+      if (!str || str.length <= max) return str;
+      const cut = str.slice(0, max);
+      const lastSpace = cut.lastIndexOf(' ');
+      return (lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut).trimEnd();
+    }
+
     parsed.translatedTitle = parsed.translatedTitle || title;
-    parsed.shortDesc = removeEmDashes(parsed.shortDesc || '');
-    parsed.longDesc  = removeEmDashes(parsed.longDesc  || '');
+    parsed.coverTagline = hardTrunc(removeEmDashes(parsed.coverTagline || ''), 45);
+    parsed.shortDesc = hardTrunc(removeEmDashes(parsed.shortDesc || ''), 110);
+    parsed.longDesc  = hardTrunc(removeEmDashes(parsed.longDesc  || ''), 370);
     parsed.insights  = (parsed.insights || []).map(ins => removeEmDashes(ins));
     parsed.chapters  = (parsed.chapters || []).map(ch => ({
       title:   removeEmDashes(ch.title   || ''),
@@ -1529,6 +1576,7 @@ ${isRussian ? `- RUSSIAN WORD MINIMUM: the combined word count of ALL chapters m
 
     renderOutput({ title, author, langCode, category, tone, duration, ssml,
       translatedTitle: parsed.translatedTitle,
+      coverTagline: parsed.coverTagline,
       shortDesc: parsed.shortDesc, longDesc: parsed.longDesc, insights: parsed.insights, chapters: parsed.chapters });
   } catch(err) {
     genShowError('Could not reach the Anthropic API. Check your internet connection and try again.');
@@ -1572,9 +1620,10 @@ function copyChapter(i, event) {
 }
 function copyAll() {
   if (!currentData) return;
-  const { title, author, langCode, shortDesc, longDesc, insights, chapters, ssml } = currentData;
+  const { title, author, langCode, coverTagline, shortDesc, longDesc, insights, chapters, ssml } = currentData;
   const parts = [
     `ZEHN BOOK CONTENT\n${title}\nby ${author}\n${'='.repeat(50)}`,
+    `COVER TAGLINE (45 chars max)\n${coverTagline || ''}`,
     `SHORT DESCRIPTION (110 chars max)\n${shortDesc}`,
     `LONG DESCRIPTION (370 chars max)\n${longDesc}`,
     `KEY INSIGHTS\n${insights.map(i => '- '+i).join('\n')}`,
@@ -1590,10 +1639,11 @@ function copyAll() {
 }
 function downloadAll() {
   if (!currentData) return;
-  const { title, author, langCode, shortDesc, longDesc, insights, chapters, ssml } = currentData;
+  const { title, author, langCode, coverTagline, shortDesc, longDesc, insights, chapters, ssml } = currentData;
   const slug = title.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
   const parts = [
     `ZEHN BOOK CONTENT\n${title}\nby ${author}\n${'='.repeat(50)}`,
+    `COVER TAGLINE (45 chars max)\n${coverTagline || ''}`,
     `SHORT DESCRIPTION (110 chars max)\n${shortDesc}`,
     `LONG DESCRIPTION (370 chars max)\n${longDesc}`,
     `KEY INSIGHTS\n${insights.map(i => '- '+i).join('\n')}`,
@@ -2074,21 +2124,33 @@ function anaHideError()    { document.getElementById('anaErrorMsg').classList.re
 let cgnRefImages = [];       // [{ name, mimeType, base64 }]
 
 const CGN_PALETTE_DESCRIPTIONS = {
-  'auto':                'Pick a fitting palette of 3-4 bold flat colors that match the theme.',
+  'auto':                'Read the book title and concept description carefully. Choose exactly 3 bold flat colors that feel UNIQUE to THIS specific book — not colors that would suit the genre in general, but colors that capture what makes this particular book different from every other book. Derive the palette from the book\'s specific imagery, metaphors, emotional tone, and core idea. Avoid defaulting to safe category clichés. The palette should feel like it could ONLY belong to this book.',
   'cream-purple-orange': 'Soft cream / pale-mint background (#EAF1D9), vibrant violet-purple (#7E2BE0) for the title and main illustration, warm orange (#FFA84A) accent shapes, plus a small amount of light-green decorative dots.',
   'darkgreen-yellow':    'Deep forest green background (#27392E) with mustard yellow (#F4C44E) for the title and warm cream (#F2EBD8) accents.',
-  'orange-yellow-blue':  'Bright orange / yellow background (#F0A82A → #FAD05A), dark navy/black main illustration (#2A2A2A) and electric blue (#4F86F7) light beams or accent shapes.',
+  'orange-yellow-blue':  'Bright orange / yellow background (#F0A82A), dark navy/black main illustration (#2A2A2A) and electric blue (#4F86F7) light beams or accent shapes.',
   'yellow-red-blue':     'Yellow upper half (#F5C842), deep red lower band (#D13B2E), royal blue (#1E3FB7) accent shapes and white objects.',
   'green-blue-yellow':   'Bright kelly green background (#1AAE5A), navy blue (#13265E) main illustration, mustard yellow (#F4C842) accents.',
   'pink-blue-cream':     'Soft pink background (#F5B6C4), royal blue (#2842D4) main illustration, cream/peach (#F8E9DC) typography.',
-  'navy-green-lime':     'Deep navy / midnight purple background (#1B1043), bright green money-graphic shapes (#1FAE5A) and acid-lime (#C8FF40) typography.'
+  'navy-green-lime':     'Deep navy / midnight purple background (#1B1043), bright green money-graphic shapes (#1FAE5A) and acid-lime (#C8FF40) typography.',
+  'red-black-white':     'Pure white background (#FFFFFF), deep jet black (#1A1A1A) main illustration and title, vivid red (#E8272A) as the sole accent color for key shapes, highlights, and energy. Maximum contrast, graphic punch.',
+  'teal-coral-cream':    'Deep teal background (#1A6B6E), bold warm coral-red (#E8503A) main illustration and dominant shapes, ivory cream (#F5EDD6) title typography and small accents. Confident and warm.',
+  'purple-gold-black':   'Rich deep purple background (#2D1B4E), warm metallic gold (#D4A843) main illustration and title text, jet black (#0D0D0D) for grounding accent forms. Luxurious and authoritative.',
+  'sky-rust-white':      'Bright sky blue background (#5BB5E8), deep rust/burnt orange (#C44820) main illustration and title, clean white (#FFFFFF) accent shapes. Fresh, energetic, optimistic.',
+  'midnight-amber-cream':'Midnight navy background (#0F1E3D), warm amber (#E8943A) main illustration and dominant forms, soft cream (#F2E8D0) title text and small accents. Rich, serious, trustworthy.',
+  'sage-terracotta-ivory':'Sage green background (#7A9E7E), bold terracotta (#C05A30) main illustration, ivory (#F0E8D5) title and light accents. Earthy, human, approachable.',
+  'cobalt-yellow-white': 'Cobalt blue background (#1A4FBD), bright sunshine yellow (#F5C830) main illustration and dominant shapes, clean white (#FFFFFF) title and small accents. Bold, decisive, high-energy.',
+  'black-mint-white':    'Jet black background (#111111), electric mint green (#2EFFB4) main illustration and key accent shapes, clean white (#FFFFFF) typography. Sharp, modern, no-fluff.',
+  'charcoal-turquoise-sand': 'Dark charcoal background (#2A2E35), vivid turquoise (#2ABFB3) main illustration and shapes, warm sand (#E8D5A3) title text and accents. Sophisticated and contemporary.',
+  'crimson-cream-forest': 'Crimson red background (#B82B2B), warm cream (#F5EDD4) main illustration and title, deep forest green (#1E4D2B) accent shapes. Bold, grounded, decisive.'
 };
 
 const CGN_STYLE_DESCRIPTIONS = {
   'flat-vector':        'Flat cartoon editorial illustration — professional studio quality. STRICT RULES: (1) CARTOON ART ONLY — objects, hands, figures must be simplified and cartoon-like, NOT photorealistic. Think chunky editorial art: big blocky hands, simple faces, stylized objects. Zero realistic anatomy or photographic detail. (2) EXACTLY 3 flat solid colors: background, primary illustration color, accent color. Absolute zero gradients, shadows, transparency, shading, texture, or glow. Pure solid fills only. (3) One dominant cartoon illustration fills 60-75% of the cover. It MUST bleed off at least one edge — cropped and oversized is the rule. NEVER float it centered with whitespace around it. (4) All shapes are large, chunky, bold — thick simplified forms, zero fine detail, zero intricate linework. (5) NO scattered decorative accents near the edges. Any secondary element must be thematically meaningful — max 2. (6) Title text may be layered ON TOP of the illustration in a contrasting accent color.',
   'bold-geometric':     'Bold geometric flat illustration. Massive strong silhouettes with maximum contrast — shapes are simple polygons, circles, or rectangles scaled up to fill the frame and bleed off the edges. Exactly 3 solid flat colors, zero gradients, zero shading, zero 3D. The illustration dominates 65-80% of the cover. Title sits in whatever remaining space is strongest — top, bottom, or directly overlaid. Secondary elements must be bold and thematic, not decorative.',
   'minimal-typographic':'Minimal typography-led design. The title is the #1 visual — oversized, 45-55% of cover height, ultra-bold weight 800-900 sans-serif. One small but boldly graphic illustration element (an icon, a simple object) placed to interact with the text, not float independently. Generous breathing room. Exactly 2-3 flat solid colors. No gradients, no shadows. The illustration should feel like punctuation to the title, not compete with it.',
-  'hand-drawn':         'Loose hand-drawn vector style: slightly imperfect outlines, rounded corners, warm and approachable tone. Still exactly 3 flat solid colors only — no gradients, no shading. Every shape looks drawn with a thick marker. The illustration is large (60-70% of cover) and bled off at least one edge. Title is bold, heavy weight, placed clearly against the background color for contrast.'
+  'hand-drawn':         'Loose hand-drawn vector style: slightly imperfect outlines, rounded corners, warm and approachable tone. Still exactly 3 flat solid colors only — no gradients, no shading. Every shape looks drawn with a thick marker. The illustration is large (60-70% of cover) and bled off at least one edge. Title is bold, heavy weight, placed clearly against the background color for contrast.',
+  'retro-poster':       'Retro constructivist poster style — inspired by vintage Penguin Books, Soviet propaganda posters, and 1960s editorial design. Bold typographic hierarchy, flat geometric shapes, strong diagonal energy or clear horizontal banding. Exactly 3 solid flat colors. Typography and illustration function as one unified graphic composition — not separate elements. Title can be oversized and structural. No gradients, no shadows, pure flat graphic art.',
+  'split-composition':  'Bold split-screen or banded composition. The cover is divided into 2-3 distinct zones — a strong horizontal, vertical, or diagonal split — each zone in one of the 3 solid palette colors. The main illustration straddles or breaks across the split for visual tension. Title is large and placed in the zone with the most contrast. All shapes are chunky flat cartoon art, zero detail, zero gradients. The split itself IS the design statement.'
 };
 
 const CGN_LANG_LABELS = {
@@ -2118,17 +2180,15 @@ function cgnPrefillFromScript() {
   // instead of re-translating (and potentially mangling) it itself.
   const titleToUse = currentData.translatedTitle || currentData.title || '';
   document.getElementById('cgnTitle').value    = titleToUse;
-  document.getElementById('cgnSubtitle').value = currentData.shortDesc ? currentData.shortDesc.slice(0, 90) : '';
+  document.getElementById('cgnSubtitle').value = currentData.coverTagline || '';
   document.getElementById('cgnAuthor').value   = '';
   // Map language codes from script generator (e.g. 'en-US') to cover generator codes
   const langMap = { 'en-US':'en','en-GB':'en','ar-SA':'ar','ru-RU':'ru','tg-TJ':'tg' };
   const cgnLang = langMap[currentData.langCode] || 'en';
   document.getElementById('cgnLanguage').value = cgnLang;
-  // Auto-fill concept from longDesc / shortDesc if empty
+  // Always overwrite concept with the new book's description
   const concept = document.getElementById('cgnConcept');
-  if (!concept.value.trim()) {
-    concept.value = currentData.longDesc || currentData.shortDesc || '';
-  }
+  concept.value = currentData.longDesc || currentData.shortDesc || '';
   const btn = document.getElementById('cgnPrefillBtn');
   const orig = btn.innerHTML;
   btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg> Filled`;
@@ -2253,6 +2313,10 @@ function cgnBuildPrompt(opts) {
     ? `\nARABIC: Render "${title}" in correct, connected Arabic script (RTL). Use a modern bold Arabic sans-serif (Tajawal/Boutros style). No fragmented or mirrored letters.`
     : '';
 
+  const bookContext = concept
+    ? `WHAT THIS BOOK IS ABOUT (use this as your primary source for everything — illustration, palette if auto, mood, composition):\n${concept}`
+    : `WHAT THIS BOOK IS ABOUT: Derive everything from the title alone.`;
+
   return `Non-fiction book cover — editorial cartoon illustration style. Bold, graphic, striking at thumbnail size. Think Blinkist/Shortform covers or editorial design studios: flat cartoon art, simplified chunky forms, NOT photorealistic.
 
 TITLE (render exactly): "${title}"
@@ -2260,12 +2324,15 @@ ${subtitle ? `SUBTITLE (smaller, exact): "${subtitle}"` : 'NO SUBTITLE.'}
 ${author   ? `AUTHOR (small): "${author}"` : 'NO AUTHOR NAME.'}
 LANGUAGE: ${langLabel}${arabicNote}
 
+${bookContext}
+
+BOOK-SPECIFIC ILLUSTRATION BRIEF:
+Using only the title and the book description above — no assumptions about genre defaults — identify the single most distinctive image or tension that belongs ONLY to this book. Turn that into one powerful cartoon illustration. If you can imagine the same image on a different book, you have the wrong idea. The description field above is your brief: extract the core visual idea from it, don't invent something generic.
+
 STYLE: ${styleDesc}
 
 PALETTE (use ONLY these colors, no others): ${paletteDesc}
 RULE: Exactly 3 solid flat colors max. Zero gradients, shadows, transparency, or texture.
-
-THEME: ${concept || "One bold cartoon illustration that is a direct visual metaphor for the book's core idea."}
 
 ILLUSTRATION RULES (critical — follow every rule):
 - CARTOON/EDITORIAL ART ONLY — every object, hand, figure, or character must look like a flat cartoon illustration. Simplified, chunky, slightly playful. NOT photorealistic, NOT a 3D render, NOT a stock photo style.
@@ -2298,6 +2365,14 @@ function cgnReset() {
   document.getElementById('cgnRefThumbs').innerHTML = '';
   document.getElementById('cgnPrePromptWrap').style.display = 'none';
 }
+
+// ── Close / Quit Guard ──
+// Intercepts Cmd+Q, Cmd+W, tab close, browser close, and navigation away.
+// The browser will show a native "Leave site?" confirmation before closing.
+window.addEventListener('beforeunload', e => {
+  e.preventDefault();
+  e.returnValue = ''; // Required for Chrome/Edge; triggers the native dialog
+});
 </script>
 </body>
 </html>
