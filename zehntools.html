@@ -582,30 +582,25 @@ canvas#waveform{width:100%;height:80px;border-radius:var(--radius-sm);border:1px
         </div>
 
         <div class="tabs-wrap">
-          <button class="tab-btn active" onclick="switchTab('script',this)"><span class="tab-dot" style="background:var(--green)"></span>Script</button>
-          <button class="tab-btn" onclick="switchTab('ssml',this)"><span class="tab-dot" style="background:var(--purple)"></span>SSML</button>
+          <button class="tab-btn active" onclick="switchTab('ssml',this)"><span class="tab-dot" style="background:var(--purple)"></span>SSML</button>
           <button class="tab-btn" onclick="switchTab('meta',this)"><span class="tab-dot" style="background:var(--amber)"></span>Metadata</button>
           <button class="tab-btn" onclick="switchTab('chapters',this)"><span class="tab-dot" style="background:var(--blue)"></span>Chapters</button>
         </div>
 
-        <div class="tab-pane active" id="tab-script">
-          <div class="script-body" id="scriptBody"></div>
-          <div class="quality-row" id="qualityRow">
-            <div class="quality-dot"></div>
-            <div class="quality-text" id="qualityText"></div>
-          </div>
-          <div class="word-count-bar">
-            <span class="wc-stat" id="wcStat"></span>
-          </div>
-        </div>
-
-        <div class="tab-pane" id="tab-ssml">
+        <div class="tab-pane active" id="tab-ssml">
           <div class="ssml-note">
             <strong>How to use this in Microsoft Speech Studio:</strong> Open your script in Speech Studio, switch the input mode to <strong>SSML</strong> (toggle at the top of the text area), then paste this entire block. The <strong>&lt;break time="2000ms"/&gt;</strong> tags create a 2-second silence between chapters so you can detect chapter boundaries when you upload the audio to the Analyser tool. Each sentence is on its own line for clean subtitle generation. The <strong>xml:lang</strong> attribute updates automatically based on your selected language.
           </div>
           <div style="position:relative;">
             <button class="meta-copy-btn" id="ssmlCopyBtn" onclick="copySsml()" style="position:absolute;top:10px;right:10px;z-index:2;">Copy SSML</button>
             <div class="ssml-body" id="ssmlBody"></div>
+          </div>
+          <div class="word-count-bar" style="margin-top:14px;">
+            <span class="wc-stat" id="ssmlWcStat"></span>
+          </div>
+          <div class="quality-row" id="ssmlQualityRow">
+            <div class="quality-dot"></div>
+            <div class="quality-text" id="ssmlQualityText"></div>
           </div>
         </div>
 
@@ -1122,6 +1117,99 @@ function sentenceLines(text) {
     .trim();
 }
 
+// ── WELCOME MESSAGES (one picked at random per generation) ──
+// Each language has its own set of 10 messages. Arabic keeps the same
+// punchy rhythm as English — short staccato phrases — just in Arabic.
+// Russian and Tajik are idiomatic, not literal translations.
+const WELCOME_MESSAGES = {
+  'en-US': [
+    "The book is long. Your time isn't. Welcome to Zehn.",
+    "Great minds wrote it. Zehn made it yours.",
+    "Hours of reading. Minutes of Zehn. Let's go.",
+    "Everything that matters. Nothing that doesn't. This is Zehn.",
+    "The world's greatest books. Distilled. You're on Zehn.",
+    "Read less. Know more. Welcome to Zehn.",
+    "Your time is valuable. Zehn gets that. Let's dive in.",
+    "Big ideas. Small time. This is Zehn.",
+    "The shortcut serious people take. Welcome to Zehn.",
+    "One book. Distilled to its finest. You're on Zehn.",
+  ],
+  'en-GB': [
+    "The book is long. Your time isn't. Welcome to Zehn.",
+    "Great minds wrote it. Zehn made it yours.",
+    "Hours of reading. Minutes of Zehn. Let's go.",
+    "Everything that matters. Nothing that doesn't. This is Zehn.",
+    "The world's greatest books. Distilled. You're on Zehn.",
+    "Read less. Know more. Welcome to Zehn.",
+    "Your time is valuable. Zehn gets that. Let's dive in.",
+    "Big ideas. Small time. This is Zehn.",
+    "The shortcut serious people take. Welcome to Zehn.",
+    "One book. Distilled to its finest. You're on Zehn.",
+  ],
+  'ar-SA': [
+    "الكتاب طويل. وقتك لا. أهلاً بك في زيهن.",
+    "عقول عظيمة كتبته. زيهن جعله لك.",
+    "ساعات من القراءة. دقائق من زيهن. هيا بنا.",
+    "كل ما يهم. لا شيء مما لا يهم. هذا هو زيهن.",
+    "أعظم كتب العالم. مُقطَّرة. أنت في زيهن.",
+    "اقرأ أقل. اعرف أكثر. أهلاً بك في زيهن.",
+    "وقتك ثمين. زيهن يدرك ذلك. هيا نبدأ.",
+    "أفكار كبيرة. وقت قليل. هذا هو زيهن.",
+    "الاختصار الذي يختاره الجادون. أهلاً بك في زيهن.",
+    "كتاب واحد. مُقطَّر إلى أرقى صورة. أنت في زيهن.",
+  ],
+  'ru-RU': [
+    "Книга длинная. Ваше время — нет. Добро пожаловать в Зен.",
+    "Великие умы её написали. Зен сделал её вашей.",
+    "Часы чтения. Минуты с Зен. Начнём.",
+    "Всё важное. Ничего лишнего. Это Зен.",
+    "Лучшие книги мира. В концентрированном виде. Вы в Зен.",
+    "Читайте меньше. Знайте больше. Добро пожаловать в Зен.",
+    "Ваше время ценно. Зен это понимает. Давайте начнём.",
+    "Большие идеи. Мало времени. Это Зен.",
+    "Путь, которым идут серьёзные люди. Добро пожаловать в Зен.",
+    "Одна книга. Дистиллированная до совершенства. Вы в Зен.",
+  ],
+  'tg-TJ': [
+    "Китоб дароз аст. Вақти шумо не. Хуш омадед ба Зен.",
+    "Зеҳнҳои бузург онро навиштанд. Зен онро барои шумо кард.",
+    "Соатҳои хониш. Дақиқаҳои Зен. Биёед.",
+    "Ҳама чизи муҳим. Ҳеч чизи беҳуда. Ин Зен аст.",
+    "Беҳтарин китобҳои ҷаҳон. Ихтисор шуда. Шумо дар Зен ҳастед.",
+    "Камтар хонед. Бештар донед. Хуш омадед ба Зен.",
+    "Вақти шумо арзишманд аст. Зен инро медонад. Биёед шурӯъ кунем.",
+    "Ақидаҳои бузург. Вақти кам. Ин Зен аст.",
+    "Роҳе ки одамони ҷиддӣ мераванд. Хуш омадед ба Зен.",
+    "Як китоб. То нуктаи олии худ ихтисор шуда. Шумо дар Зен ҳастед.",
+  ],
+};
+
+// ── CHAPTER ORDINALS ──
+// Arabic: stays as "Chapter 1" in English — Arabic TTS handles it cleanly
+// and avoids ambiguity with Arabic ordinal gender agreement complexity.
+// Russian & Tajik: use written ordinal forms ("Глава первая", "Боби якум")
+// which sound natural when read aloud, unlike "Глава 1".
+const CHAPTER_ORDINALS = {
+  'ru-RU': [
+    'Глава первая', 'Глава вторая', 'Глава третья', 'Глава четвёртая',
+    'Глава пятая', 'Глава шестая', 'Глава седьмая', 'Глава восьмая', 'Глава девятая',
+  ],
+  'tg-TJ': [
+    'Боби якум', 'Боби дуюм', 'Боби сеюм', 'Боби чорум',
+    'Боби панҷум', 'Боби шашум', 'Боби ҳафтум', 'Боби ҳаштум', 'Боби нӯҳум',
+  ],
+};
+
+function getChapterLabel(langCode, index) {
+  // Arabic: keep English "Chapter N." format — TTS reads it cleanly
+  if (langCode === 'ar-SA') return `Chapter ${index + 1}.`;
+  // Russian / Tajik: use written ordinal word forms
+  const ordinals = CHAPTER_ORDINALS[langCode];
+  if (ordinals && ordinals[index] !== undefined) return ordinals[index] + '.';
+  // English and any fallback: numeric
+  return `Chapter ${index + 1}.`;
+}
+
 function buildSSML(chapters, langCode, bookTitle) {
   const xmlLang = (LANG_MAP[langCode] || LANG_MAP['en-US']).xmlLang;
   // Book title announced at the very start, followed by a short pause
@@ -1130,13 +1218,13 @@ function buildSSML(chapters, langCode, bookTitle) {
     : '';
   const inner = chapters.map((ch, i) => {
     const isLast = i === chapters.length - 1;
-    // Chapter number spoken before each chapter, then a short pause
-    const chapterLabel = `Chapter ${i + 1}.\n<break time="400ms"/>`;
+    // Chapter label spoken before each chapter, then a short pause
+    const chapterLabel = `${getChapterLabel(langCode, i)}\n<break time="400ms"/>`;
     // Each sentence on its own line for clean subtitle sync
     const content = sentenceLines(ch.content.trim());
     return chapterLabel + '\n' + content + (isLast ? '' : '\n<break time="2000ms"/>');
   }).join('\n\n');
-  return `<speak version="1.0" xmlns="http://www.w3.org/2001/XMLSchema-instance" xml:lang="${xmlLang}">\n${intro}${inner}\n</speak>`;
+  return `${intro}${inner}`;
 }
 
 function switchTab(name, btn) {
@@ -1165,7 +1253,7 @@ function renderSSMLHighlighted(ssml) {
 
 function renderOutput(data) {
   currentData = data;
-  const { title, author, langCode, category, tone, duration, script, ssml, translatedTitle, shortDesc, longDesc, insights, chapters } = data;
+  const { title, author, langCode, category, tone, duration, ssml, translatedTitle, shortDesc, longDesc, insights, chapters } = data;
   const langLabel = (LANG_MAP[langCode] || {}).label || langCode;
   const isTranslated = translatedTitle && translatedTitle !== title;
 
@@ -1182,17 +1270,20 @@ function renderOutput(data) {
   document.getElementById('outChips').innerHTML =
     `<span class="chip green">${langLabel}</span><span class="chip">${category}</span><span class="chip">${duration} min</span><span class="chip">${tone}</span>`;
 
-  document.getElementById('scriptBody').textContent = script;
-  const wc = script.trim().split(/\s+/).length;
-  const estMins = Math.round(wc / WORDS_PER_MIN);
-  document.getElementById('wcStat').innerHTML = `<strong>${wc.toLocaleString()} words</strong> &middot; approx. ${estMins} min of audio`;
-  const hasEmDash = /—/.test(script);
-  document.getElementById('qualityRow').classList.add('show');
-  document.getElementById('qualityText').innerHTML = hasEmDash
-    ? 'Script generated. Dashes were cleaned automatically.'
-    : `Script generated. <strong>No em dashes detected.</strong> Ready to upload.`;
-
   document.getElementById('ssmlBody').innerHTML = renderSSMLHighlighted(ssml);
+
+  // ── SSML stats bar ──
+  const allContent = chapters.map(ch => ch.content).join(' ');
+  const wc = allContent.trim().split(/\s+/).filter(w => w.length > 0).length;
+  const charCount = allContent.length;
+  const estMins = Math.round(wc / WORDS_PER_MIN);
+  document.getElementById('ssmlWcStat').innerHTML =
+    `<strong>${wc.toLocaleString()} words</strong> &middot; <strong>${charCount.toLocaleString()} characters</strong> &middot; approx. ${estMins} min`;
+  const hasEmDash = /—/.test(allContent);
+  document.getElementById('ssmlQualityRow').classList.add('show');
+  document.getElementById('ssmlQualityText').innerHTML = hasEmDash
+    ? 'Em dashes detected and cleaned automatically.'
+    : `<strong>No em dashes detected.</strong> Ready to upload.`;
 
   document.getElementById('shortDescText').textContent = shortDesc;
   const sc = shortDesc.length;
@@ -1221,7 +1312,7 @@ function renderOutput(data) {
     <div class="chapter-item" id="chapter-${i}">
       <div class="chapter-header" onclick="toggleChapter(${i})">
         <div class="chapter-meta">
-          <span class="chapter-num">Ch ${i+1}</span>
+          <span class="chapter-num">${getChapterLabel(langCode, i).replace(/\.$/, '')}</span>
           <span class="chapter-title">${ch.title}</span>
         </div>
         <div class="chapter-badges">
@@ -1433,14 +1524,10 @@ ${isRussian ? `- RUSSIAN WORD MINIMUM: the combined word count of ALL chapters m
       }
     }
 
-    const fullScript = parsed.chapters.map((ch, i) =>
-      `Chapter ${i+1}: ${ch.title}\n\n${ch.content}`
-    ).join('\n\n' + '='.repeat(40) + '\n\n');
-
     // Use translated title in SSML so the audio announces the book name in the target language
     const ssml = buildSSML(parsed.chapters, langCode, parsed.translatedTitle);
 
-    renderOutput({ title, author, langCode, category, tone, duration, script: fullScript, ssml,
+    renderOutput({ title, author, langCode, category, tone, duration, ssml,
       translatedTitle: parsed.translatedTitle,
       shortDesc: parsed.shortDesc, longDesc: parsed.longDesc, insights: parsed.insights, chapters: parsed.chapters });
   } catch(err) {
@@ -1477,7 +1564,7 @@ function copyInsights() {
 function copyChapter(i, event) {
   if (!currentData) return;
   const ch = currentData.chapters[i];
-  navigator.clipboard.writeText(`Chapter ${i+1}: ${ch.title}\n\n${ch.content}`).then(() => {
+  navigator.clipboard.writeText(`${getChapterLabel(currentData.langCode, i).replace(/\.$/, '')}: ${ch.title}\n\n${ch.content}`).then(() => {
     const btn = event.currentTarget;
     btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
     setTimeout(() => { btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy chapter`; }, 2500);
@@ -1485,14 +1572,14 @@ function copyChapter(i, event) {
 }
 function copyAll() {
   if (!currentData) return;
-  const { title, author, shortDesc, longDesc, insights, chapters, ssml } = currentData;
+  const { title, author, langCode, shortDesc, longDesc, insights, chapters, ssml } = currentData;
   const parts = [
     `ZEHN BOOK CONTENT\n${title}\nby ${author}\n${'='.repeat(50)}`,
     `SHORT DESCRIPTION (110 chars max)\n${shortDesc}`,
     `LONG DESCRIPTION (370 chars max)\n${longDesc}`,
     `KEY INSIGHTS\n${insights.map(i => '- '+i).join('\n')}`,
     `SSML (paste into Microsoft Speech Studio in SSML mode)\n${ssml}`,
-    `CHAPTERS\n${chapters.map((ch,i) => `Chapter ${i+1}: ${ch.title}\n\n${ch.content}`).join('\n\n'+'-'.repeat(40)+'\n\n')}`,
+    `CHAPTERS\n${chapters.map((ch,i) => `${getChapterLabel(langCode, i).replace(/\.$/, '')}: ${ch.title}\n\n${ch.content}`).join('\n\n'+'-'.repeat(40)+'\n\n')}`,
   ];
   navigator.clipboard.writeText(parts.join('\n\n'+'='.repeat(50)+'\n\n')).then(() => {
     const btn = document.getElementById('copyAllBtn');
@@ -1503,7 +1590,7 @@ function copyAll() {
 }
 function downloadAll() {
   if (!currentData) return;
-  const { title, author, shortDesc, longDesc, insights, chapters, ssml } = currentData;
+  const { title, author, langCode, shortDesc, longDesc, insights, chapters, ssml } = currentData;
   const slug = title.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
   const parts = [
     `ZEHN BOOK CONTENT\n${title}\nby ${author}\n${'='.repeat(50)}`,
@@ -1511,7 +1598,7 @@ function downloadAll() {
     `LONG DESCRIPTION (370 chars max)\n${longDesc}`,
     `KEY INSIGHTS\n${insights.map(i => '- '+i).join('\n')}`,
     `SSML (paste into Microsoft Speech Studio in SSML mode)\n${ssml}`,
-    `CHAPTERS\n${chapters.map((ch,i) => `Chapter ${i+1}: ${ch.title}\n\n${ch.content}`).join('\n\n'+'-'.repeat(40)+'\n\n')}`,
+    `CHAPTERS\n${chapters.map((ch,i) => `${getChapterLabel(langCode, i).replace(/\.$/, '')}: ${ch.title}\n\n${ch.content}`).join('\n\n'+'-'.repeat(40)+'\n\n')}`,
   ];
   const blob = new Blob([parts.join('\n\n'+'='.repeat(50)+'\n\n')], { type:'text/plain' });
   const a = document.createElement('a');
@@ -1521,10 +1608,11 @@ function clearAll() {
   document.getElementById('bookTitle').value = '';
   document.getElementById('bookAuthor').value = '';
   document.getElementById('outputWrap').classList.remove('visible');
-  document.getElementById('qualityRow').classList.remove('show');
   document.getElementById('clearBtn').style.display = 'none';
+  document.getElementById('ssmlWcStat').innerHTML = '';
+  document.getElementById('ssmlQualityRow').classList.remove('show');
   currentData = null; genHideError();
-  switchTab('script', document.querySelector('.tab-btn'));
+  switchTab('ssml', document.querySelector('.tab-btn'));
   window.scrollTo({ top:0, behavior:'smooth' });
 }
 function setLoading(on) {
