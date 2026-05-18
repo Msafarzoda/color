@@ -781,6 +781,10 @@ canvas#waveform{width:100%;height:80px;border-radius:var(--radius-sm);border:1px
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             Copy timestamps
           </button>
+          <button class="btn-copy-results" id="downloadCsvBtn" onclick="downloadCSV()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download CSV
+          </button>
         </div>
         <div class="chapter-result-list" id="chapterResultList"></div>
         <div class="summary-bar" id="summaryBar"></div>
@@ -1994,6 +1998,17 @@ function copyResults() {
       btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy timestamps`;
     }, 2600);
   });
+}
+
+function downloadCSV() {
+  if (!chapterTimestamps || !chapterTimestamps.length) return;
+  // Format: startSec,durationSec — one chapter per line
+  const csv = chapterTimestamps.map(ch => `${ch.startSec},${ch.durationSec}`).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'zehn-timestamps.csv';
+  a.click();
 }
 
 function anaShowError(msg) { const el = document.getElementById('anaErrorMsg'); el.textContent = msg; el.classList.add('visible'); }
