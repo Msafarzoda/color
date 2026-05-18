@@ -1214,10 +1214,9 @@ const WELCOME_MESSAGES = {
 };
 
 // ── CHAPTER ORDINALS ──
-// Arabic: stays as "Chapter 1" in English — Arabic TTS handles it cleanly
-// and avoids ambiguity with Arabic ordinal gender agreement complexity.
 // Russian & Tajik: use written ordinal forms ("Глава первая", "Боби якум")
-// which sound natural when read aloud, unlike "Глава 1".
+// which sound natural when read aloud.
+// Arabic ordinals are in ARABIC_CHAPTER_ORDINALS below (used only in SSML).
 const CHAPTER_ORDINALS = {
   'ru-RU': [
     'Глава первая', 'Глава вторая', 'Глава третья', 'Глава четвёртая',
@@ -1229,13 +1228,61 @@ const CHAPTER_ORDINALS = {
   ],
 };
 
-function getChapterLabel(langCode, index) {
-  // Arabic: keep English "Chapter N." format — TTS reads it cleanly
-  if (langCode === 'ar-SA') return `Chapter ${index + 1}.`;
-  // Russian / Tajik: use written ordinal word forms
+// ── CONCLUSION LABELS ──
+// Last chapter label in each supported language.
+// Arabic: الخاتمة (al-khātima) — standard word for "conclusion/closing" in Arabic prose.
+// Russian: Заключение (zaklyucheniye) — the conventional word for conclusion in Russian.
+// Tajik: Хулоса (khulosa) — natural Tajik word for conclusion/summary.
+// English: Conclusion — plain and universal.
+const CONCLUSION_LABELS = {
+  'en-US': 'Conclusion',
+  'en-GB': 'Conclusion',
+  'ar-SA': 'الخاتمة',
+  'ru-RU': 'Заключение',
+  'tg-TJ': 'Хулоса',
+};
+
+// ── UI chapter label (shown in the chapter list panel) ──
+// Arabic uses "الفصل 1" with a visible numeric so chapters are easy to read and reorder.
+// Russian/Tajik use written ordinals. English uses "Chapter N".
+function getChapterLabel(langCode, index, isLast = false) {
+  if (isLast) return (CONCLUSION_LABELS[langCode] || 'Conclusion') + '.';
+  if (langCode === 'ar-SA') return `الفصل ${index + 1}.`;
   const ordinals = CHAPTER_ORDINALS[langCode];
   if (ordinals && ordinals[index] !== undefined) return ordinals[index] + '.';
-  // English and any fallback: numeric
+  return `Chapter ${index + 1}.`;
+}
+
+// ── Arabic ordinals for SSML/TTS ──
+// All agree with الفصل (masculine).
+// الفصل الأول = "the first chapter", الفصل الثاني = "the second chapter", etc.
+// TTS reads these exactly as a human narrator would say them.
+const ARABIC_CHAPTER_ORDINALS = [
+  'الفصل الأول',   // 1 — al-fasl al-awwal
+  'الفصل الثاني',  // 2 — al-fasl al-thāni
+  'الفصل الثالث',  // 3 — al-fasl al-thālith
+  'الفصل الرابع',  // 4 — al-fasl al-rābi'
+  'الفصل الخامس',  // 5 — al-fasl al-khāmis
+  'الفصل السادس',  // 6 — al-fasl al-sādis
+  'الفصل السابع',  // 7 — al-fasl al-sābi'
+  'الفصل الثامن',  // 8 — al-fasl al-thāmin
+  'الفصل التاسع',  // 9 — al-fasl al-tāsi'
+];
+
+// ── SSML chapter label (spoken aloud by TTS) ──
+// Uses fully written ordinal words in every language so the audio sounds natural.
+// Arabic: "الفصل الأول", "الفصل الثاني" … (masculine ordinals agreeing with الفصل)
+// Russian: "Глава первая", "Глава вторая" … (already written ordinals)
+// Tajik: "Боби якум", "Боби дуюм" … (already written ordinals)
+// English: "Chapter 1", "Chapter 2" … (TTS reads numerals naturally in English)
+// Last chapter: conclusion word in the target language for all languages.
+function getChapterSSMLLabel(langCode, index, isLast = false) {
+  if (isLast) return (CONCLUSION_LABELS[langCode] || 'Conclusion') + '.';
+  if (langCode === 'ar-SA') {
+    return (ARABIC_CHAPTER_ORDINALS[index] || `الفصل ${index + 1}`) + '.';
+  }
+  const ordinals = CHAPTER_ORDINALS[langCode];
+  if (ordinals && ordinals[index] !== undefined) return ordinals[index] + '.';
   return `Chapter ${index + 1}.`;
 }
 
@@ -1248,7 +1295,7 @@ function buildSSML(chapters, langCode, bookTitle) {
   const inner = chapters.map((ch, i) => {
     const isLast = i === chapters.length - 1;
     // Chapter label spoken before each chapter, then a short pause
-    const chapterLabel = `${getChapterLabel(langCode, i)}\n<break time="400ms"/>`;
+    const chapterLabel = `${getChapterSSMLLabel(langCode, i, isLast)}\n<break time="400ms"/>`;
     // Each sentence on its own line for clean subtitle sync
     const content = sentenceLines(ch.content.trim());
     return chapterLabel + '\n' + content + (isLast ? '' : '\n<break time="2000ms"/>');
@@ -1349,7 +1396,7 @@ function renderOutput(data) {
     <div class="chapter-item" id="chapter-${i}">
       <div class="chapter-header" onclick="toggleChapter(${i})">
         <div class="chapter-meta">
-          <span class="chapter-num">${getChapterLabel(langCode, i).replace(/\.$/, '')}</span>
+          <span class="chapter-num">${getChapterLabel(langCode, i, i === chapters.length - 1).replace(/\.$/, '')}</span>
           <span class="chapter-title">${ch.title}</span>
         </div>
         <div class="chapter-badges">
@@ -1472,7 +1519,7 @@ ${isRussian ? `- RUSSIAN WORD MINIMUM: the combined word count of ALL chapters m
 - Each chapter must contain at least ${sizePerChapter} words of detailed prose. If a chapter is too short, keep writing until it reaches ${sizePerChapter} words.` : ''}
 - Chapter 1 opens with a compelling hook
 - Each covers one distinct core idea
-- Last chapter closes with a clear actionable takeaway
+- Last chapter is the Conclusion: its "title" field must be the word Conclusion translated into ${langLabel} (Arabic: "الخاتمة", Russian: "Заключение", Tajik: "Хулоса", English: "Conclusion"). Its content synthesises all key ideas and closes with a clear, actionable takeaway
 - Tone: ${tone}, second person ("you","your")
 - No em dashes, no double hyphens, no ALL CAPS
 - No stage directions, timestamps, or formatting marks
@@ -1612,7 +1659,7 @@ function copyInsights() {
 function copyChapter(i, event) {
   if (!currentData) return;
   const ch = currentData.chapters[i];
-  navigator.clipboard.writeText(`${getChapterLabel(currentData.langCode, i).replace(/\.$/, '')}: ${ch.title}\n\n${ch.content}`).then(() => {
+  navigator.clipboard.writeText(`${getChapterLabel(currentData.langCode, i, i === currentData.chapters.length - 1).replace(/\.$/, '')}: ${ch.title}\n\n${ch.content}`).then(() => {
     const btn = event.currentTarget;
     btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
     setTimeout(() => { btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy chapter`; }, 2500);
@@ -1628,7 +1675,7 @@ function copyAll() {
     `LONG DESCRIPTION (370 chars max)\n${longDesc}`,
     `KEY INSIGHTS\n${insights.map(i => '- '+i).join('\n')}`,
     `SSML (paste into Microsoft Speech Studio in SSML mode)\n${ssml}`,
-    `CHAPTERS\n${chapters.map((ch,i) => `${getChapterLabel(langCode, i).replace(/\.$/, '')}: ${ch.title}\n\n${ch.content}`).join('\n\n'+'-'.repeat(40)+'\n\n')}`,
+    `CHAPTERS\n${chapters.map((ch,i) => `${getChapterLabel(langCode, i, i === chapters.length - 1).replace(/\.$/, '')}: ${ch.title}\n\n${ch.content}`).join('\n\n'+'-'.repeat(40)+'\n\n')}`,
   ];
   navigator.clipboard.writeText(parts.join('\n\n'+'='.repeat(50)+'\n\n')).then(() => {
     const btn = document.getElementById('copyAllBtn');
@@ -1648,7 +1695,7 @@ function downloadAll() {
     `LONG DESCRIPTION (370 chars max)\n${longDesc}`,
     `KEY INSIGHTS\n${insights.map(i => '- '+i).join('\n')}`,
     `SSML (paste into Microsoft Speech Studio in SSML mode)\n${ssml}`,
-    `CHAPTERS\n${chapters.map((ch,i) => `${getChapterLabel(langCode, i).replace(/\.$/, '')}: ${ch.title}\n\n${ch.content}`).join('\n\n'+'-'.repeat(40)+'\n\n')}`,
+    `CHAPTERS\n${chapters.map((ch,i) => `${getChapterLabel(langCode, i, i === chapters.length - 1).replace(/\.$/, '')}: ${ch.title}\n\n${ch.content}`).join('\n\n'+'-'.repeat(40)+'\n\n')}`,
   ];
   const blob = new Blob([parts.join('\n\n'+'='.repeat(50)+'\n\n')], { type:'text/plain' });
   const a = document.createElement('a');
