@@ -394,6 +394,42 @@ canvas#waveform{width:100%;height:80px;border-radius:var(--radius-sm);border:1px
 .cgn-palette-swatch:active{transform:scale(1.05)}
 .cgn-palette-applied{font-size:11px;color:var(--text-mute);font-style:italic;white-space:nowrap}
 .cgn-palette-applied strong{color:var(--purple);font-style:normal}
+
+/* ═══════════════════════════════════
+   ADD CHAPTERS — BUTTON + MODAL
+═══════════════════════════════════ */
+.btn-add-chapters{border-color:rgba(251,217,127,0.35)!important;color:var(--amber)!important}
+.btn-add-chapters:hover{background:rgba(251,217,127,0.08)!important;color:var(--amber)!important;border-color:rgba(251,217,127,0.55)!important}
+.admin-modal-overlay{position:fixed;inset:0;background:rgba(3,33,46,0.90);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeUp 0.25s ease}
+.admin-modal-panel{background:#06202D;border:1px solid var(--line-2);border-radius:var(--radius-lg);width:100%;max-width:660px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.5)}
+.admin-modal-head{padding:22px 24px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.admin-modal-title{font-size:16px;font-weight:700;letter-spacing:-0.01em}
+.admin-modal-close{background:none;border:none;color:var(--text-mute);cursor:pointer;padding:4px 6px;display:flex;align-items:center;font-size:22px;line-height:1;transition:color 0.15s;border-radius:6px}
+.admin-modal-close:hover{color:var(--text);background:rgba(255,255,255,0.06)}
+.admin-modal-body{padding:20px 24px;overflow-y:auto;flex:1}
+.admin-modal-body::-webkit-scrollbar{width:4px}
+.admin-modal-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:99px}
+.admin-data-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.admin-data-chip{font-size:11px;padding:4px 10px;border-radius:99px;border:1px solid rgba(251,217,127,0.28);color:var(--amber);background:rgba(251,217,127,0.07)}
+.admin-data-chip.missing{border-color:rgba(255,138,138,0.3);color:var(--red);background:rgba(255,138,138,0.07)}
+.admin-steps{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.admin-step{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;background:rgba(255,255,255,0.02);border:1px solid var(--line);border-radius:var(--radius-sm)}
+.admin-step-num{width:22px;height:22px;border-radius:50%;background:rgba(251,217,127,0.12);border:1px solid rgba(251,217,127,0.3);color:var(--amber);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.admin-step-text{font-size:13px;color:var(--text-dim);line-height:1.55}
+.admin-step-text strong{color:var(--text);font-weight:600}
+.admin-step-text code{font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;color:var(--amber)}
+.admin-script-label{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-mute);margin-bottom:8px}
+.admin-script-box{background:rgba(0,0,0,0.35);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(234,243,248,0.45);line-height:1.6;max-height:130px;overflow-y:auto;user-select:all;white-space:pre-wrap;word-break:break-all;cursor:text}
+.admin-script-box::-webkit-scrollbar{width:4px}
+.admin-script-box::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:99px}
+.admin-modal-foot{padding:16px 24px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-shrink:0}
+.btn-copy-script{display:inline-flex;align-items:center;gap:7px;background:var(--amber);color:var(--ink);border:none;border-radius:var(--radius-sm);padding:11px 22px;font-size:13px;font-weight:700;font-family:'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:opacity 0.15s,background 0.2s;letter-spacing:-0.01em}
+.btn-copy-script:hover{opacity:0.88}
+.btn-copy-script svg{width:14px;height:14px;flex-shrink:0}
+.btn-modal-cancel{display:inline-flex;align-items:center;background:transparent;color:var(--text-dim);border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;font-weight:500;font-family:'Plus Jakarta Sans',system-ui,sans-serif;cursor:pointer;transition:background 0.15s,color 0.15s}
+.btn-modal-cancel:hover{background:rgba(255,255,255,0.05);color:var(--text)}
+.admin-note{font-size:12px;color:var(--text-mute);line-height:1.5;margin-top:12px;padding:10px 14px;background:rgba(251,217,127,0.04);border:1px solid rgba(251,217,127,0.12);border-radius:var(--radius-sm)}
+.admin-note strong{color:var(--amber)}
 </style>
 </head>
 <body>
@@ -785,6 +821,10 @@ canvas#waveform{width:100%;height:80px;border-radius:var(--radius-sm);border:1px
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Download CSV
           </button>
+          <button class="btn-copy-results btn-add-chapters" id="addChaptersBtn" onclick="generateAdminScript()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            Add Chapters
+          </button>
         </div>
         <div class="chapter-result-list" id="chapterResultList"></div>
         <div class="summary-bar" id="summaryBar"></div>
@@ -793,6 +833,45 @@ canvas#waveform{width:100%;height:80px;border-radius:var(--radius-sm);border:1px
     </div>
 
   </div><!-- /tool-analyser -->
+
+  <!-- ════════════════════════════════
+       ADD CHAPTERS MODAL
+  ════════════════════════════════ -->
+  <div class="admin-modal-overlay" id="adminScriptModal" style="display:none;" onclick="if(event.target===this)closeAdminModal()">
+    <div class="admin-modal-panel">
+      <div class="admin-modal-head">
+        <div class="admin-modal-title">Add Chapters to Django Admin</div>
+        <button class="admin-modal-close" onclick="closeAdminModal()">&#215;</button>
+      </div>
+      <div class="admin-modal-body">
+        <div class="admin-data-chips" id="adminDataChips"></div>
+        <div class="admin-steps">
+          <div class="admin-step">
+            <div class="admin-step-num">1</div>
+            <div class="admin-step-text">In Django Admin, go to <strong>Book Management → Chapters → Add Chapter</strong> and select the correct book from the dropdown</div>
+          </div>
+          <div class="admin-step">
+            <div class="admin-step-num">2</div>
+            <div class="admin-step-text">Open the browser console with <code>F12</code> → <strong>Console</strong> tab</div>
+          </div>
+          <div class="admin-step">
+            <div class="admin-step-num">3</div>
+            <div class="admin-step-text">Copy the script below, paste it in the console, and press <strong>Enter</strong> — all chapters will be submitted automatically via the API with a progress overlay</div>
+          </div>
+        </div>
+        <div class="admin-script-label">Console Script — click to select all</div>
+        <div class="admin-script-box" id="adminScriptBox" onclick="this.focus();document.execCommand('selectAll')"></div>
+        <div class="admin-note"><strong>Note:</strong> The script submits each chapter directly via fetch (same session, no page reload). It auto-detects field names from the live form and reads the selected book automatically. After it finishes, reload the Chapters list to verify.</div>
+      </div>
+      <div class="admin-modal-foot">
+        <button class="btn-copy-script" id="copyScriptBtn" onclick="copyAdminScript()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy Script
+        </button>
+        <button class="btn-modal-cancel" onclick="closeAdminModal()">Close</button>
+      </div>
+    </div>
+  </div>
 
 
   <!-- ════════════════════════════════
@@ -1521,10 +1600,13 @@ ${isArabic ? `- ARABIC WORD MINIMUM: the combined word count of ALL chapters mus
 - ARABIC CHARACTER REQUIREMENT: count characters (حروف + مسافات + علامات) — each chapter needs at least ${sizePerChapter} of them. If a chapter is too short, keep writing until it reaches ${sizePerChapter}.` : ''}
 ${isRussian ? `- RUSSIAN WORD MINIMUM: the combined word count of ALL chapters must reach at least ${RUSSIAN_MIN_WORDS} Russian words. If you finish a chapter and the running total is still below ${RUSSIAN_MIN_WORDS} words, continue writing more content in that chapter.
 - Each chapter must contain at least ${sizePerChapter} words of detailed prose. If a chapter is too short, keep writing until it reaches ${sizePerChapter} words.` : ''}
-- Chapter 1 opens with a compelling hook
-- Each covers one distinct core idea
-- Last chapter is the Conclusion: its "title" must be a short 3–6 word phrase in ${langLabel} that captures what THIS specific book's conclusion is actually saying — based on the book's core argument and message. Do NOT use the word "Conclusion" as the title (a separate label already shows that). Its content synthesises all key ideas and closes with a clear, actionable takeaway
+- Chapter 1 is the INTRODUCTION: open with a direct personal hook ("What's in it for you?"), state the core problem the reader faces, make a clear promise about what they will gain, and set up the journey ahead. No teaching yet — only hook and promise.
+- Chapters 2 through ${numChapters - 3} are BODY chapters: each covers exactly one distinct core idea from the book. Go deep on one concept per chapter. Do not introduce multiple unrelated ideas in one chapter.
+- Chapter ${numChapters - 2} is the MIC DROP chapter: the single most powerful or surprising insight in the entire book — one that reframes everything the reader thought they knew. It should feel like a revelation, not a summary. Give it a bold, specific title that captures the reframe.
+- Chapter ${numChapters - 1} is the ACTION chapter (like "Try this"): do NOT explain theory. Instead, give the reader a set of clear, specific, practical actions they can take immediately based on what they learned. Written as direct instructions. Second person, present tense. Actionable and energising.
+- Last chapter (chapter ${numChapters}) is the SUMMARY/CONCLUSION: its "title" must be a short 3–6 word phrase in ${langLabel} that captures what THIS specific book's conclusion is actually saying. Do NOT use the word "Conclusion" as the title. Synthesise all key ideas, echo the promise made in chapter 1, and close with a clear motivating takeaway.
 - Tone: ${tone}, second person ("you","your")
+- PARAGRAPH STRUCTURE: separate every paragraph with a blank line (\\n\\n). Each paragraph must be 3–5 sentences maximum. Never write one long unbroken block of text. Aim for 4–6 paragraphs per chapter.
 - No em dashes, no double hyphens, no ALL CAPS
 - No stage directions, timestamps, or formatting marks
 - No mention of AI, "summary", "audiobook", "chapter", or "lesson"
@@ -2009,6 +2091,196 @@ function downloadCSV() {
   a.href = URL.createObjectURL(blob);
   a.download = 'zehn-timestamps.csv';
   a.click();
+}
+
+/* ─── ADD CHAPTERS TO DJANGO ADMIN ─── */
+let _adminScript = '';
+
+function generateAdminScript() {
+  if (!chapterTimestamps || !chapterTimestamps.length) {
+    alert('No chapter timestamps yet — run the Audio Analyser first.');
+    return;
+  }
+
+  const genChapters = (currentData && currentData.chapters) ? currentData.chapters : [];
+  const hasContent  = genChapters.length > 0;
+  const countMatch  = hasContent && genChapters.length === chapterTimestamps.length;
+
+  // Build combined chapter payload
+  const langCode = (currentData && currentData.langCode) || 'ar-SA';
+  const totalChapters = chapterTimestamps.length;
+  const chapters = chapterTimestamps.map((ts, i) => {
+    const gc      = genChapters[i] || {};
+    const content = gc.content || '';
+    // Chapter title: prefer script-generator title, strip leading "Chapter N:" / "Chapter N -" prefix
+    const rawTitle = (gc.title || ts.name || '').trim();
+    const cleanTitle = rawTitle.replace(/^chapter\s+\d+\s*[:–\-]\s*/i, '').trim() || rawTitle;
+    // Short description: first sentence of content (up to first ". " or end of string, max 200 chars)
+    const firstSentenceMatch = content.match(/^(.+?[.!?])(?:\s|$)/);
+    const shortDesc = firstSentenceMatch ? firstSentenceMatch[1].trim().slice(0, 200) : content.slice(0, 200);
+    // Chapter label for prepending to chapter text (e.g. "الخاتمة" or "الفصل الأول")
+    const label = getChapterLabel(langCode, i, i === totalChapters - 1).replace(/\.$/, '');
+    return {
+      title:       cleanTitle,
+      label:       label,
+      shortDesc:   shortDesc,
+      content:     content,
+      orderNum:    i + 1,
+      startSec:    ts.startSec,
+      durationSec: ts.durationSec
+    };
+  });
+
+  // Data chips
+  const chipsEl = document.getElementById('adminDataChips');
+  chipsEl.innerHTML = [
+    `<span class="admin-data-chip">${chapters.length} chapter${chapters.length!==1?'s':''}</span>`,
+    `<span class="admin-data-chip ${hasContent ? '' : 'missing'}">${hasContent ? '✓ Script text included' : '⚠ No script text — generate first'}</span>`,
+    hasContent && !countMatch ? `<span class="admin-data-chip missing">⚠ Chapter count mismatch (${genChapters.length} script vs ${chapterTimestamps.length} timestamps)</span>` : '',
+    `<span class="admin-data-chip">Audio: ${chapterTimestamps[0].startSec}s → ${chapterTimestamps[chapterTimestamps.length-1].endSec}s</span>`
+  ].join('');
+
+  // ── Generate the console script ──
+  // Serialise chapter data compactly
+  const chaptersJson = JSON.stringify(chapters);
+
+  _adminScript =
+`(function(){
+/* ── Zehn Tools — Auto-Add Chapters ── */
+const CHAPTERS=${chaptersJson};
+
+/* ── Resume: which chapter index to fill next ── */
+var _idx=0;
+try{var _si=sessionStorage.getItem('zehn_idx');if(_si!==null)_idx=Math.max(0,parseInt(_si,10)||0);}catch(e){}
+
+if(_idx>=CHAPTERS.length){
+  try{sessionStorage.removeItem('zehn_idx');}catch(e){}
+  var _ob=document.getElementById('zehn-banner');if(_ob)_ob.remove();
+  alert('✅ All '+CHAPTERS.length+' chapters have been added!');return;
+}
+
+const ch=CHAPTERS[_idx];
+console.log('[Zehn] Filling chapter '+(_idx+1)+'/'+CHAPTERS.length+':',ch.title);
+
+/* ── Find the chapter add form ── */
+var _anchor=document.getElementById('id_chapter_title')||document.getElementById('id_book');
+var form=(_anchor&&_anchor.closest('form'))||document.querySelector('form[method="post"]')||document.querySelector('form');
+if(!form){alert('❌ No form found. Open the Add Chapter page first.');return;}
+
+/* ── Set a field by Django id or name ── */
+function setF(id,name,val){
+  var el=document.getElementById(id)||form.querySelector('[name="'+name+'"]');
+  if(el){el.value=String(val==null?'':val);
+    try{el.dispatchEvent(new Event('input',{bubbles:true}));}catch(e){}
+    try{el.dispatchEvent(new Event('change',{bubbles:true}));}catch(e){}
+    return true;}
+  return false;
+}
+
+/* ── Fill every field ── */
+setF('id_order_number',            'order_number',             ch.orderNum);
+setF('id_chapter_number',          'chapter_number',           ch.orderNum);
+setF('id_chapter_title',           'chapter_title',            ch.title);
+setF('id_short_description',       'short_description',        ch.shortDesc||'');
+setF('id_chapter_audio_start_time','chapter_audio_start_time', Math.round(parseFloat(ch.startSec)||0));
+setF('id_duration',                'duration',                 Math.round(parseFloat(ch.durationSec)||0));
+console.log('[Zehn] startSec:',Math.round(parseFloat(ch.startSec)||0),'duration:',Math.round(parseFloat(ch.durationSec)||0));
+
+/* ── is_active checkbox ── */
+var _ia=document.getElementById('id_is_active')||form.querySelector('[name="is_active"]');
+if(_ia){if(_ia.type==='checkbox'){_ia.checked=true;}else{_ia.value='on';}}
+
+/* ── Content type — Introduction (1st) / Chapter (middle) / Summary (last) ── */
+var _ct=form.querySelector('[name="content_type"]');
+if(_ct){
+  var _targetType=_idx===0?'introduction':(_idx===CHAPTERS.length-1?'summary':'chapter');
+  var _co=Array.from(_ct.options||[]).find(function(o){return o.text.trim().toLowerCase()===_targetType;});
+  if(_co)_ct.value=_co.value;
+  console.log('[Zehn] content_type →',_ct.value);
+}
+
+/* ── CKEditor (chapter_text field) ── */
+var _ckId='id_chapter_text';
+/* Convert plain text with \n\n paragraph breaks into HTML <p> blocks */
+function _toHtml(prefix,body){
+  var parts=[];
+  if(prefix)parts.push('<p><strong>'+prefix+'</strong></p>');
+  var paras=(body||'').split(/\\n\\n+/);
+  paras.forEach(function(p){var t=p.trim();if(t)parts.push('<p>'+t+'</p>');});
+  return parts.join('');
+}
+var _chapterPrefix=(ch.label&&ch.title)?(ch.label+': '+ch.title):'';
+var _chapterFullText=_toHtml(_chapterPrefix,ch.content||'');
+function _setCK(){
+  if(window.CKEDITOR&&CKEDITOR.instances&&CKEDITOR.instances[_ckId]){
+    CKEDITOR.instances[_ckId].setData(_chapterFullText);
+    console.log('[Zehn] CKEditor content set ✓');
+    return true;
+  }
+  return false;
+}
+if(!_setCK()){
+  /* CKEditor may still be initialising — retry after short delay */
+  setTimeout(function(){
+    if(!_setCK()){
+      setF(_ckId,'chapter_text',_chapterFullText);
+      console.log('[Zehn] chapter_text set via DOM fallback');
+    }
+  },800);
+}
+
+/* ── Sync CKEditor textarea before form submits ── */
+form.addEventListener('submit',function(){
+  if(window.CKEDITOR&&CKEDITOR.instances&&CKEDITOR.instances[_ckId]){
+    CKEDITOR.instances[_ckId].updateElement();
+  }
+},{once:true,capture:true});
+
+/* ── Advance state BEFORE save (so reload shows next chapter) ── */
+try{sessionStorage.setItem('zehn_idx',String(_idx+1));}catch(e){}
+
+/* ── Top banner ── */
+var _old=document.getElementById('zehn-banner');if(_old)_old.remove();
+var _bn=document.createElement('div');
+_bn.id='zehn-banner';
+_bn.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#06202D;border-bottom:3px solid #FBD97F;padding:10px 18px;display:flex;align-items:center;gap:14px;font-family:system-ui,sans-serif;color:#EAF3F8;box-shadow:0 4px 20px rgba(0,0,0,.7)';
+var _last=(_idx+1>=CHAPTERS.length);
+_bn.innerHTML=
+  '<span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.45;white-space:nowrap">Zehn Tools</span>'
+  +'<span style="font-size:14px;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">✅ Chapter '+(_idx+1)+' / '+CHAPTERS.length+' — “'+ch.title+'” filled</span>'
+  +(_last
+    ?'<span style="font-size:12px;color:#82FF7F;white-space:nowrap">Last chapter — click <b>Save</b> ↓</span>'
+    :'<span style="font-size:12px;opacity:.8;white-space:nowrap">1️⃣ Click <b style="color:#FBD97F">Save and add another</b> &nbsp; 2️⃣ Console: <b style="color:#FBD97F;font-size:11px">Cmd+V → Enter</b></span>'
+  )
+  +'<button id="zehn-close" style="background:none;border:none;color:#fff;opacity:.4;cursor:pointer;font-size:22px;line-height:1;padding:0 4px;flex-shrink:0">&times;</button>';
+document.body.appendChild(_bn);
+document.getElementById('zehn-close').addEventListener('click',function(){var b=document.getElementById('zehn-banner');if(b)b.remove();});
+
+/* ── Scroll the save buttons into view ── */
+var _sv=document.querySelector('[name="_addanother"],[name="_save"]');
+if(_sv)_sv.scrollIntoView({behavior:'smooth',block:'center'});
+
+console.log('[Zehn] Done. Chapter '+(_idx+1)+'/'+CHAPTERS.length+' filled.'
+  +(_last?' Click Save.':' Click "Save and add another" → paste script again (Cmd+V)'));
+})();`;
+
+  document.getElementById('adminScriptBox').textContent = _adminScript;
+  document.getElementById('adminScriptModal').style.display = 'flex';
+}
+
+function copyAdminScript() {
+  if (!_adminScript) return;
+  navigator.clipboard.writeText(_adminScript).then(() => {
+    const btn = document.getElementById('copyScriptBtn');
+    const orig = btn.innerHTML;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+    btn.style.background = 'var(--green)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.background = 'var(--amber)'; }, 2800);
+  });
+}
+
+function closeAdminModal() {
+  document.getElementById('adminScriptModal').style.display = 'none';
 }
 
 function anaShowError(msg) { const el = document.getElementById('anaErrorMsg'); el.textContent = msg; el.classList.add('visible'); }
